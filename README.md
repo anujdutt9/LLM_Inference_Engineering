@@ -20,10 +20,10 @@ including what went wrong, plus a failure analysis across them.
    - [workloads and data](#34-workloads-and-datasets)
    - [GPU platform](#35-the-gpu-platform)
    - [experiment framework](#36-the-experiment-framework)
-5. [The experiments I ran](#4-the-experiments-i-ran)
-6. [What I found](#5-what-i-found)
-7. [What I learned](#6-what-i-learned)
-8. [Limits and next steps](#7-limits-and-next-steps)
+4. [The experiments I ran](#4-the-experiments-i-ran)
+5. [What I found](#5-what-i-found)
+6. [What I learned](#6-what-i-learned)
+7. [Limits and next steps](#7-limits-and-next-steps)
 
 Reference: [Quick start on a laptop](#quick-start-on-a-laptop-no-gpu) · [Reproduce the experiments](#reproduce-the-experiments) ([runbook](docs/RUNBOOK.md)) · [Run on Lambda](#run-the-experiments-on-lambda) · [Every experiment, with its script](#experiments) · [Analyse, grade, replay](#analyse-grade-replay) · [Recordings and run data](#recordings-and-run-data) · [Repository layout](#repository-layout) · [Reproducibility notes](#reproducibility-notes) · [Acknowledgments](#acknowledgments)
 
