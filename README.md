@@ -25,7 +25,15 @@ including what went wrong, plus a failure analysis across them.
 6. [What I learned](#6-what-i-learned)
 7. [Limits and next steps](#7-limits-and-next-steps)
 
-Reference: [Quick start on a laptop](#quick-start-on-a-laptop-no-gpu) · [Reproduce the experiments](#reproduce-the-experiments) ([runbook](docs/RUNBOOK.md)) · [Run on Lambda](#run-the-experiments-on-lambda) · [Every experiment, with its script](#experiments) · [Analyse, grade, replay](#analyse-grade-replay) · [Recordings and run data](#recordings-and-run-data) ([Google Drive](https://drive.google.com/drive/folders/1A1h9Exa0yjsk6cqThDqK3XLB9k_SAUIP?usp=drive_link)) · [Repository layout](#repository-layout) · [Reproducibility notes](#reproducibility-notes) · [Acknowledgments](#acknowledgments)
+Reference:
+- [Quick start on a laptop](#quick-start-on-a-laptop-no-gpu)
+- [Reproduce the experiments](#reproduce-the-experiments) ([runbook](docs/RUNBOOK.md))
+- [Run on Lambda](#run-the-experiments-on-lambda)
+- [Every experiment, with its script](#experiments)
+- [Analyse, grade, replay](#analyse-grade-replay)
+- [Recordings and run data](#recordings-and-run-data) ([Google Drive](https://drive.google.com/drive/folders/1A1h9Exa0yjsk6cqThDqK3XLB9k_SAUIP?usp=drive_link))
+- [Repository layout](#repository-layout)
+- [Reproducibility notes](#reproducibility-notes)
 
 ## 1. What the project is about
 
@@ -436,9 +444,3 @@ tests/          pytest suite (no GPU, no network)
   Setup B run; set `OVERFLOW_API_KEY` in `.env` and run `bash setup/overflow_secret.sh` to try it.
 - The NovaAI data is synthetic (a fictional company, seeded); the 10-Ks are each company's published annual
   report, trimmed (sources in `datasets/exp1b/filings/manifest.json`).
-
-## Acknowledgments
-
-Thank you to [Superlinked](https://superlinked.com/) and [Lambda](https://lambda.ai/) for providing the credits
-that made the H100 experiments possible. Their support provided the infrastructure; the experiment design,
-gateway implementation, measurements, analysis and conclusions are my own.
