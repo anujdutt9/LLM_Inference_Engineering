@@ -25,7 +25,7 @@ including what went wrong, plus a failure analysis across them.
 6. [What I learned](#6-what-i-learned)
 7. [Limits and next steps](#7-limits-and-next-steps)
 
-Reference: [Quick start on a laptop](#quick-start-on-a-laptop-no-gpu) · [Reproduce the experiments](#reproduce-the-experiments) ([runbook](docs/RUNBOOK.md)) · [Run on Lambda](#run-the-experiments-on-lambda) · [Every experiment, with its script](#experiments) · [Analyse, grade, replay](#analyse-grade-replay) · [Recordings and run data](#recordings-and-run-data) · [Repository layout](#repository-layout) · [Reproducibility notes](#reproducibility-notes) · [Acknowledgments](#acknowledgments)
+Reference: [Quick start on a laptop](#quick-start-on-a-laptop-no-gpu) · [Reproduce the experiments](#reproduce-the-experiments) ([runbook](docs/RUNBOOK.md)) · [Run on Lambda](#run-the-experiments-on-lambda) · [Every experiment, with its script](#experiments) · [Analyse, grade, replay](#analyse-grade-replay) · [Recordings and run data](#recordings-and-run-data) ([Google Drive](https://drive.google.com/drive/folders/1A1h9Exa0yjsk6cqThDqK3XLB9k_SAUIP?usp=drive_link)) · [Repository layout](#repository-layout) · [Reproducibility notes](#reproducibility-notes) · [Acknowledgments](#acknowledgments)
 
 ## 1. What the project is about
 
@@ -379,24 +379,30 @@ Every script explains its parts, options and timings in its header comment. Piec
 
 ### Recordings and run data
 
-The full raw artifacts are kept out of git (Prometheus snapshots, per-call logs, agent transcripts and screen
-recordings from every H100 run) and are in the project's shared Drive folder: **link: _coming soon_**. The
-repository carries one complete, compact run, the charts and the short clips used in this README.
+**[Open the shared Google Drive folder](https://drive.google.com/drive/folders/1A1h9Exa0yjsk6cqThDqK3XLB9k_SAUIP?usp=drive_link)** (~32 GB, view only). It holds everything too large for git:
+the replay clips, every H100 run's raw data, and the screen recordings. The repository itself carries one complete,
+compact run, every chart and diagram, and the short clips shown in this README.
 
-| Drive folder | What | Put it at |
+| In the Drive folder | What you will find | Put it at, to use it with the repo |
 |---|---|---|
-| `video/` | every UI and Grafana replay clip used by the experiment pages and the deck | `docs/presentation/video/` |
-| `results/` | every run: per-call logs, 1 s gateway state, Locust CSVs, Prometheus snapshots, before/after stack snapshots, reports, agent outputs and transcripts | `results/` |
-| `recordings/` | the raw screen recordings of the live runs | anywhere |
+| [`video/`](https://drive.google.com/drive/folders/1A1h9Exa0yjsk6cqThDqK3XLB9k_SAUIP?usp=drive_link) (374 MB) | every pipeline-UI and Grafana replay clip: `ui/` (one per experiment), `grafana/<clip>/` (the matching dashboard views, same seconds), `hero/` and `hero_v2/` (the side-by-side cuts used in the talk). Each clip has a `.json` with its run, time window and what to notice | `docs/presentation/video/` |
+| `results/exp4/` (3.8 GB) | every Setup B (two 9B replicas) run, c01–c14: per variant, Locust CSVs and HTML, per-call `requests.jsonl`, 1 s gateway `state.jsonl`, a UI `replay.jsonl`, `window.md` with Grafana links; per run, `report.md`, before/after stack snapshots and its Prometheus snapshot | `results/exp4/` |
+| `results/experiments/` (11 GB) | every Setup A (27B + 9B) agent run, Exp-0 to Exp-2M, filed the same way, one folder per session | `results/experiments/` |
+| `results/box/` (14 GB) | the gateway's raw logs from the GPU box: every call's timings, tokens, placement and outcome, every state change, request bodies and outputs; the input to `analysis.scale` | `results/box/` |
+| `results/runs/` (255 MB) | the stack snapshots taken before and after each run: pods, events, logs, `nvidia-smi` per HAMi slice, vLLM and gateway `/metrics` | `results/runs/` |
+| `results/prometheus/` (693 MB) | the Prometheus snapshot behind the memory-pressure charts (c14) | `results/prometheus/` |
+| `results/outputs/` (30 MB) | what the agent teams produced: the leads' reports (Markdown and HTML), the subagents' findings, and the full transcripts | `results/outputs/` |
+| `results/reports/`, `results/analysis/`, `results/exp0/` | the agents' report folders, report-quality grades and session summaries, and every gate result | same paths under `results/` |
+| `recordings/` (1.5 GB) | the raw screen recordings made live during the Exp-4 runs (placement, queue depth, replica kill, memory pressure, live agent teams) | anywhere |
 
 With `results/` in place, every `analysis.*` command, `make charts` and both replays work on the real runs. The
-repo itself carries one complete small run to try things on: [samples/exp4-demo-full/](samples/exp4-demo-full/window.md).
+repository's own small run works without any download: [samples/exp4-demo-full/](samples/exp4-demo-full/window.md).
 
 **The talk**: [docs/presentation/deck/presentation.html](docs/presentation/deck/presentation.html). Open the file
 in a browser from your clone (no server needed); ← / → move between slides, `F` goes full screen, `A` jumps to the
 appendix. Every chart, diagram and number is in the repository. The UI and Grafana clips are not: each video slide
-shows a frame of its clip, and clicking it opens the shared Drive folder. To play them inside the deck, download
-the Drive folder's `video/` into `docs/presentation/video/`.
+shows a frame of its clip. To play them inside the deck, download the [Drive folder](https://drive.google.com/drive/folders/1A1h9Exa0yjsk6cqThDqK3XLB9k_SAUIP?usp=drive_link)'s `video/` into
+`docs/presentation/video/`.
 
 ### Repository layout
 
