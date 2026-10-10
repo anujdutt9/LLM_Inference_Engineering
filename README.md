@@ -13,11 +13,17 @@ including what went wrong, plus a failure analysis across them.
 
 1. [What the project is about](#1-what-the-project-is-about)
 2. [What I did](#2-what-i-did)
-3. [What I built](#3-what-i-built): [gateway](#31-the-gateway-orch-serve) · [agent harness](#32-the-agent-harness-tinyharness) · [UI and observability](#33-the-pipeline-ui-and-observability) · [workloads and data](#34-workloads-and-datasets) · [GPU platform](#35-the-gpu-platform) · [experiment framework](#36-the-experiment-framework)
-4. [The experiments I ran](#4-the-experiments-i-ran)
-5. [What I found](#5-what-i-found)
-6. [What I learned](#6-what-i-learned)
-7. [Limits and next steps](#7-limits-and-next-steps)
+3. [What I built](#3-what-i-built):
+   - [gateway](#31-the-gateway-orch-serve)
+   - [agent harness](#32-the-agent-harness-tinyharness)
+   - [UI and observability](#33-the-pipeline-ui-and-observability)
+   - [workloads and data](#34-workloads-and-datasets)
+   - [GPU platform](#35-the-gpu-platform)
+   - [experiment framework](#36-the-experiment-framework)
+5. [The experiments I ran](#4-the-experiments-i-ran)
+6. [What I found](#5-what-i-found)
+7. [What I learned](#6-what-i-learned)
+8. [Limits and next steps](#7-limits-and-next-steps)
 
 Reference: [Quick start on a laptop](#quick-start-on-a-laptop-no-gpu) · [Reproduce the experiments](#reproduce-the-experiments) ([runbook](docs/RUNBOOK.md)) · [Run on Lambda](#run-the-experiments-on-lambda) · [Every experiment, with its script](#experiments) · [Analyse, grade, replay](#analyse-grade-replay) · [Recordings and run data](#recordings-and-run-data) · [Repository layout](#repository-layout) · [Reproducibility notes](#reproducibility-notes) · [Acknowledgments](#acknowledgments)
 
@@ -170,11 +176,11 @@ what went wrong and how it was fixed, and what it taught. All the numbers: [docs
 | Theme | Setup A: 27B + 9B, agent teams | Setup B: two 9B replicas |
 |---|---|---|
 | Is the stack right? | [Exp-0](docs/experiments/exp0.md) the gate | |
-| Can one team finish? | [Exp-1A](docs/experiments/exp1a.md) SQL · [Exp-1B](docs/experiments/exp1b.md) 10-K, 9B vs 27B lead · [Exp-1C](docs/experiments/exp1c.md) coding | |
-| Sharing one GPU | [Exp-2](docs/experiments/exp2.md) two teams at once · [Exp-2M](docs/experiments/exp2m.md) three workloads | |
-| Capacity | | [c01](docs/experiments/c01.md) one vs two replicas · [c09](docs/experiments/c09.md) one engine × 16 slots vs two × 8 |
-| Placement | | [c02](docs/experiments/c02.md) four policies · [c10](docs/experiments/c10.md) with spare capacity · [c11](docs/experiments/c11.md) at saturation, v1 vs v2 |
-| Gateway controls | [Exp-2c](docs/experiments/exp2c.md) admission on 20 agents | [c03](docs/experiments/c03.md) the four modes · [c04](docs/experiments/c04.md) everything on · [c05](docs/experiments/c05.md) queue depth |
+| Can one team finish? | [Exp-1A](docs/experiments/exp1a.md) SQL, [Exp-1B](docs/experiments/exp1b.md) 10-K, 9B vs 27B lead, [Exp-1C](docs/experiments/exp1c.md) coding | |
+| Sharing one GPU | [Exp-2](docs/experiments/exp2.md) two teams at once, [Exp-2M](docs/experiments/exp2m.md) three workloads | |
+| Capacity | | [c01](docs/experiments/c01.md) one vs two replicas, [c09](docs/experiments/c09.md) one engine × 16 slots vs two × 8 |
+| Placement | | [c02](docs/experiments/c02.md) four policies, [c10](docs/experiments/c10.md) with spare capacity, [c11](docs/experiments/c11.md) at saturation, v1 vs v2 |
+| Gateway controls | [Exp-2c](docs/experiments/exp2c.md) admission on 20 agents | [c03](docs/experiments/c03.md) the four modes, [c04](docs/experiments/c04.md) everything on, [c05](docs/experiments/c05.md) queue depth |
 | Reliability | | [c06](docs/experiments/c06.md) a replica dies, before and after the fix |
 | Memory | | [c14](docs/experiments/c14.md) KV cache too small for the load |
 | Disaggregation | | [c12](docs/experiments/c12.md) prefill → decode KV hand-off with NIXL · [c13](docs/experiments/c13.md) with Mooncake |
