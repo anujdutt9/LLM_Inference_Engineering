@@ -1,6 +1,6 @@
 # Serving multi-tenant AI agents on one H100
 
-[![Tests](https://github.com/anujdutt9/LLM_Inference_Engineering/actions/workflows/tests.yml/badge.svg)](https://github.com/anujdutt9/LLM_Inference_Engineering/actions/workflows/tests.yml)
+[![Tests](https://github.com/anujdutt9/multi-tenant-llm-serving/actions/workflows/tests.yml/badge.svg)](https://github.com/anujdutt9/multi-tenant-llm-serving/actions/workflows/tests.yml)
 
 I designed, built and benchmarked an inference gateway in front of vLLM on a single NVIDIA H100,
 together with everything needed to test it honestly: an agent harness to generate real agent traffic, three
@@ -270,7 +270,7 @@ engine-like timing).
 
 | Step | Command | What to expect |
 |---|---|---|
-| 1. Clone and install | `git clone https://github.com/anujdutt9/LLM_Inference_Engineering.git`<br>`cd LLM_Inference_Engineering && make setup` | `.venv/` with everything in `requirements.txt` |
+| 1. Clone and install | `git clone https://github.com/anujdutt9/multi-tenant-llm-serving.git`<br>`cd multi-tenant-llm-serving && make setup` | `.venv/` with everything in `requirements.txt` |
 | 2. Unpack the data | `make data` | `datasets/exp1a/nova_ai.db unpacked (84 MiB), sha256 verified` |
 | 3. Run the tests | `make test` | every test passes (admission, queue, placement, cancellation, both fleets' configs, dashboards, the UI's event contract, analysis) |
 | 4. Replay a real run in the UI | `make replay` | the browser opens the pipeline UI replaying the full-mode demo recorded on the H100 (1,160 calls, 4 min). The replay bar plays, changes speed (1–30×) and scrubs; click any call to see its whole life |

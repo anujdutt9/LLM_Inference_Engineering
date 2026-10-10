@@ -17,8 +17,8 @@ a local SSH tunnel; the repository's tests and functional rehearsal need neither
 ## 1. Prepare the laptop
 
 ```bash
-git clone https://github.com/anujdutt9/LLM_Inference_Engineering.git
-cd LLM_Inference_Engineering
+git clone https://github.com/anujdutt9/multi-tenant-llm-serving.git
+cd multi-tenant-llm-serving
 make setup
 make data
 make test
