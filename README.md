@@ -2,9 +2,7 @@
 
 [![Tests](https://github.com/anujdutt9/LLM_Inference_Engineering/actions/workflows/tests.yml/badge.svg)](https://github.com/anujdutt9/LLM_Inference_Engineering/actions/workflows/tests.yml)
 
-<p align="center"><img src="docs/media/gateway-animation.gif" width="640" alt="Calls from three agent teams flow through the gateway into two vLLM slices of one H100"></p>
-
-I designed, built and benchmarked **orch-serve**, an inference gateway in front of vLLM on a single NVIDIA H100,
+I designed, built and benchmarked an inference gateway in front of vLLM on a single NVIDIA H100,
 together with everything needed to test it honestly: an agent harness to generate real agent traffic, three
 agent workloads with graded outputs, a GPU cluster with memory-sliced engines, a per-call pipeline UI, Grafana
 dashboards, and an experiment framework that writes down each prediction and decision rule before the run. Then
