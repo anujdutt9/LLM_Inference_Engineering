@@ -165,7 +165,7 @@ for max concurrency and token limits, with the arithmetic: [docs/MODELS_AND_MEMO
   and writes a report with the verdicts ([`analysis/scale.py`](analysis/scale.py)).
 - **Graders** for the agents' work ([`analysis/grade.py`](analysis/grade.py), [`analysis/grade_code.py`](analysis/grade_code.py)),
   and **replay** of any run in the UI and in Grafana.
-- **A fake vLLM engine** ([`router/fake_vllm.py`](router/fake_vllm.py)) so the whole stack runs on a laptop.
+- **A fake vLLM engine** ([`router/fake_vllm.py`](router/fake_vllm.py)) so the whole stack runs on a laptop. 
 
 ## 4. The experiments I ran
 
