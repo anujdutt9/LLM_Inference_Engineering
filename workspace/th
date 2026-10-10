@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# Run tinyharness from workspace/: the project's .venv build (the stock `tinyharness` ignores
+# send_ids, so the gateway would see no session and no tenant), the canonical task prompt printed
+# and copied to the clipboard, so every run gets the same text. The config follows the fleet the
+# gateway serves: tinyharness-27b-9b.toml when it lists qwen-27b (Setup A), else tinyharness.toml.
+#
+#   ./th sql exp1a                            # interactive: paste the prompt, Enter
+#   ./th 10k exp1b --model gw:qwen-9b         # Setup A: the 10-K team with its lead on the 9B
+#   ./th 10k8 exp4-10k                        # the 10-K team (8 readers, two per filing)
+#   ./th code exp1c                           # the coding team (tasks/code.md, code/ledger)
+#   TH_HEADLESS=1 ./th sql exp4-one-sql       # unattended: runs the task once in auto mode and exits
+#                                             # (a tool call that would need approval is declined)
+#
+# <prompt> is tasks/<prompt>.md; <label> becomes TH_TASK (the gateway records it on every
+# call) and the report folder reports/<label>/. Anything after goes to tinyharness.
+set -euo pipefail
+cd "$(dirname "$0")"
+prompt="${1:?usage: ./th <sql|10k|code> <label> [tinyharness args]}"
+label="${2:?usage: ./th <sql|10k|code> <label> [tinyharness args]}"
+shift 2
+TH="../.venv/bin/tinyharness"
+if ! ../.venv/bin/python -c "import tinyharness.llm.identity" 2>/dev/null; then
+  echo "The tinyharness in ../.venv isn't the demo build (no session headers)." >&2
+  echo "Install it (README, 'tinyharness'): ../.venv/bin/pip install -e <tinyharness checkout>[tokens]" >&2
+  exit 1
+fi
+pin="$(cat tinyharness.pin 2>/dev/null || true)"
+src="$(../.venv/bin/python -c 'import tinyharness, pathlib; print(pathlib.Path(tinyharness.__file__).parents[1])')"
+have="$(git -C "$src" rev-parse HEAD 2>/dev/null || echo unknown)"
+if [[ -n "$pin" && "$have" != "$pin" ]] || [[ -n "$(git -C "$src" status --porcelain --untracked-files=no 2>/dev/null)" ]]; then
+  echo "warning: tinyharness at $src is ${have:0:8}$( [[ -n "$(git -C "$src" status --porcelain --untracked-files=no 2>/dev/null)" ]] && echo ' + local edits'), the demo pins ${pin:0:8} (workspace/tinyharness.pin)" >&2
+fi
+config=tinyharness.toml
+if curl -sf "${ORCH:-http://127.0.0.1:8080}/v1/models" 2>/dev/null | grep -q '"qwen-27b"'; then
+  config=tinyharness-27b-9b.toml
+fi
+[[ -f "tasks/$prompt.md" ]] || { echo "no tasks/$prompt.md" >&2; exit 1; }
+mkdir -p "reports/$label"
+text="$(sed "s|{{OUT}}|reports/$label|g" "tasks/$prompt.md")"
+[[ "${TH_HEADLESS:-}" != 1 ]] && printf '%s\n' "$text" | pbcopy 2>/dev/null && copied=" (copied to the clipboard: paste it)" || copied=""
+echo "── task: $label, prompt tasks/$prompt.md$copied, $config ──"
+printf '%s\n' "$text"
+echo "──"
+if [[ "${TH_HEADLESS:-}" == 1 ]]; then
+  TH_TASK="$label" exec "$TH" --config "$config" --mode auto "$@" -p "$text"
+fi
+TH_TASK="$label" exec "$TH" --config "$config" "$@"

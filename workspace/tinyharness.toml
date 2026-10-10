@@ -1,0 +1,51 @@
+# tinyharness config for Setup B (two 9B replicas): the CLI is the application, talking to orch-serve
+# on the GPU box through the SSH tunnel (setup/ssh.sh). Setup A uses tinyharness-27b-9b.toml.
+#
+#   cd workspace && ./th <sql|10k8|code> <label>                   # one terminal per tenant
+# Every agent runs on the 9B (two replicas behind the gateway).
+#
+# Each terminal is its own session; with send_ids the gateway sees it as its own tenant,
+# and every call says which agent made it (lead or subagent, and its parent).
+
+provider = "gw"
+model = "gw:qwen-9b"
+tool_calls = "native"        # vLLM parses tool calls (--tool-call-parser qwen3_xml): no probe call
+prompt_suggestions = false   # no extra model call after every turn
+request_retries = 4          # 429/503 from admission are retried, honouring Retry-After (≤ 60 s)
+request_timeout = 1800
+max_parallel_agents = 8
+# Compaction: tinyharness decides from the model, as opencode does: it summarizes once the history leaves less room
+# than the model's output limit (unknown here: 32,000), so at 65,536 − 32,000 = 33.5K, and keeps the latest ~8.4K
+# tokens word for word. Nothing is tuned here; the gateway's max_tokens (32,768) is what that room is for.
+# No compaction_model: each agent summarizes on its own model. The gateway turns thinking off for summaries (role compaction).
+
+[extensions]
+enabled = ["agents"]         # Agent and Team tools; the agents are in .tinyharness/agents/
+
+# The 9B with thinking on, Qwen's recommended sampling for precise work. Reasoning effort and the
+# thinking budget are set per role by the gateway (gateway/config.yaml reasoning_by_role: medium
+# for the lead and subagents, compaction no thinking), not here: Qwen3.8's template would otherwise default to xhigh.
+[providers.gw]
+label = "orch-serve (GPU box)"
+base_url = "http://127.0.0.1:8080/v1"
+api_key_env = ""
+default_model = "qwen-9b"
+small_model = "qwen-9b"
+send_ids = true
+# Each model as served: its window, the Hugging Face repo with its tokenizer (exact token counts for compaction),
+# and no image input (vLLM runs with --language-model-only: images go as a note saying so).
+models = [
+  { id = "qwen-9b", context = 65536, tokenizer = "Qwen/Qwen3.5-9B", images = false },
+]
+extra_body = { temperature = 0.6, top_p = 0.95, top_k = 20 }
+
+# The 9B with thinking off, for the 10-K analysts: fast and terse. Qwen's non-thinking sampling.
+[providers.gw-fast]
+label = "orch-serve, no thinking"
+base_url = "http://127.0.0.1:8080/v1"
+api_key_env = ""
+default_model = "qwen-9b"
+small_model = "qwen-9b"
+send_ids = true
+models = [{ id = "qwen-9b", context = 65536, tokenizer = "Qwen/Qwen3.5-9B", images = false }]
+extra_body = { temperature = 0.7, top_p = 0.8, top_k = 20, presence_penalty = 1.5, chat_template_kwargs = { enable_thinking = false } }

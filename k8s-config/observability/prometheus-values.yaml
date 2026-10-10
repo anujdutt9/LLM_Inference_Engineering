@@ -1,0 +1,30 @@
+server:
+  persistentVolume:
+    enabled: false
+  global:
+    scrape_interval: 5s   # per-run windows are minutes long
+    scrape_timeout: 4s
+    evaluation_interval: 5s
+  retention: 15d
+  extraFlags:
+    - web.enable-admin-api   # experiments/ take a TSDB snapshot after each run
+    - web.enable-lifecycle
+  service:
+    type: NodePort
+    nodePort: 31490          # the Mac reaches it through setup/ssh.sh
+
+extraScrapeConfigs: |
+  - job_name: hami
+    static_configs:
+      - targets:
+          - hami-device-plugin-monitor.kube-system.svc.cluster.local:31992
+          - hami-scheduler.kube-system.svc.cluster.local:31993
+
+alertmanager:
+  enabled: false
+kube-state-metrics:
+  enabled: true
+prometheus-node-exporter:
+  enabled: true
+prometheus-pushgateway:
+  enabled: false

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>10-K Comparison: NVIDIA, AMD, Intel, Broadcom</title>
+<style>
+  :root {
+    --ink: #1a1d23;
+    --muted: #5c6370;
+    --line: #dfe3ea;
+    --bg: #f7f8fa;
+    --card: #ffffff;
+    --accent: #1f4e8c;
+    --nvda: #76b900;
+    --amd: #ed1c24;
+    --intc: #0068b5;
+    --avgo: #cc092f;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    font-size: 16px;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 40px 24px 80px; }
+  header { border-bottom: 3px solid var(--accent); margin-bottom: 28px; padding-bottom: 18px; }
+  h1 { font-size: 30px; margin: 0 0 8px; letter-spacing: -0.02em; }
+  .scope { color: var(--muted); font-size: 14.5px; margin: 0; }
+  h2 {
+    font-size: 22px; margin: 44px 0 14px; letter-spacing: -0.01em;
+    border-left: 4px solid var(--accent); padding-left: 12px;
+  }
+  h3 { font-size: 18px; margin: 28px 0 10px; }
+  .tag {
+    display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; padding: 2px 9px; border-radius: 10px; color: #fff; vertical-align: 1px;
+  }
+  .tag.nvda { background: var(--nvda); }
+  .tag.amd  { background: var(--amd); }
+  .tag.intc { background: var(--intc); }
+  .tag.avgo { background: var(--avgo); }
+  p { margin: 10px 0; }
+  .summary {
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 20px 24px; font-size: 16.5px;
+  }
+  table {
+    width: 100%; border-collapse: collapse; background: var(--card);
+    border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+    font-size: 14px; margin: 16px 0 6px;
+  }
+  th, td { padding: 10px 12px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+  thead th {
+    background: #eef1f6; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em;
+    border-bottom: 2px solid var(--line);
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td.metric { font-weight: 600; white-space: nowrap; }
+  .tblnote { color: var(--muted); font-size: 13px; margin: 6px 0 0; }
+  .cites { color: var(--muted); font-size: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  ul { margin: 8px 0 8px 4px; padding-left: 20px; }
+  li { margin: 7px 0; }
+  blockquote {
+    margin: 10px 0; padding: 10px 16px; border-left: 3px solid var(--accent);
+    background: #eef2f8; font-size: 14.5px; color: #2a3140; border-radius: 0 8px 8px 0;
+  }
+  .company {
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 18px 22px; margin: 18px 0;
+  }
+  .company h3 { margin-top: 0; }
+  .company h4 { margin: 18px 0 6px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+  .positioning li { margin: 12px 0; }
+  footer {
+    margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line);
+    color: var(--muted); font-size: 13px;
+  }
+  .neg { color: #b3261e; font-weight: 600; }
+  .pos { color: #1e7a3c; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>10-K Comparison: NVIDIA, AMD, Intel, Broadcom</h1>
+  <p class="scope">
+    <strong>Scope and sources.</strong> Comparison of each company's latest annual report (Form 10-K), based on the
+    excerpts in <code>data/filings/</code>: NVIDIA fiscal 2026 (year ended January 25, 2026), AMD fiscal 2025
+    (calendar year 2025), Intel fiscal 2025 (calendar year 2025), and Broadcom fiscal 2025 (year ended November 2,
+    2025) <span class="cites">[avgo-item7-p001]</span>. Because the fiscal calendars differ, each company's
+    year-over-year comparison is on its own fiscal calendar. Every claim below is cited to its source anchor in the filings.
+  </p>
+</header>
+
+<h2>Summary</h2>
+<div class="summary">
+  <p>
+    The four filings describe four very different positions in the AI infrastructure cycle. NVIDIA is the dominant
+    supplier of AI data-center infrastructure — it calls itself <em>"a data center scale AI infrastructure company"</em>
+    <span class="cites">[nvda-item1-p001]</span> — and posted $215.9 billion of revenue, up 65%, with a 71.1% gross
+    margin and 60.4% operating margin <span class="cites">[nvda-item7-p004][nvda-item7-p009]</span>. AMD is the
+    fastest-growing challenger: $34.6 billion of revenue, up 34%, driven by EPYC processors and Instinct GPUs, and it
+    has locked in a 6-gigawatt GPU purchase agreement with OpenAI <span class="cites">[amd-item7-p002][amd-item7-p005]</span>.
+    Broadcom is the high-margin, capital-returning company: $63.9 billion of revenue, up 23.9%, with a 67.8% gross
+    margin, selling custom AI accelerators (XPUs) and data-center networking silicon to hyperscalers
+    <span class="cites">[avgo-item8-income-p001][avgo-item7-p001]</span>. Intel is the outlier — the only company with
+    declining revenue ($52.9 billion, down 0.5%) and an operating loss of $2.2 billion — having written down its Gaudi
+    AI accelerator effort as <em>"unsuccessful"</em> and shifted its AI bet to GPUs and its 14A foundry node
+    <span class="cites">[intc-item8-income-p001][intc-item1a-p004]</span>.
+  </p>
+</div>
+
+<h2>Head-to-head comparison</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Metric</th>
+      <th>NVIDIA (FY2026)</th>
+      <th>AMD (FY2025)</th>
+      <th>Intel (FY2025)</th>
+      <th>Broadcom (FY2025)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="metric">Revenue</td>
+      <td>$215,938M <span class="cites">[nvda-item7-p004]</span></td>
+      <td>$34,639M <span class="cites">[amd-item8-income-p001]</span></td>
+      <td>$52,853M <span class="cites">[intc-item8-income-p001]</span></td>
+      <td>$63,887M <span class="cites">[avgo-item8-income-p001]</span></td>
+    </tr>
+    <tr>
+      <td class="metric">YoY revenue growth</td>
+      <td class="pos">+65% <span class="cites">[nvda-item7-p004]</span></td>
+      <td class="pos">+34% <span class="cites">[amd-item7-p002]</span></td>
+      <td class="neg">−0.5% <span class="cites">[intc-item8-income-p001]</span></td>
+      <td class="pos">+23.9% <span class="cites">[avgo-item8-income-p001]</span></td>
+    </tr>
+    <tr>
+      <td class="metric">Gross margin</td>
+      <td>71.1% (prior yr 75.0%) <span class="cites">[nvda-item7-p004]</span></td>
+      <td>50% (prior yr 49%) <span class="cites">[amd-item7-p002]</span></td>
+      <td>34.8% (prior yr 32.7%) <span class="cites">[intc-item8-income-p001]</span></td>
+      <td>67.8% (prior yr 63.0%) <span class="cites">[avgo-item8-income-p001]</span></td>
+    </tr>
+    <tr>
+      <td class="metric">Operating income</td>
+      <td>$130,387M, +60% <span class="cites">[nvda-item7-p004]</span></td>
+      <td>$3,694M (prior yr $1,900M) <span class="cites">[amd-item8-income-p001]</span></td>
+      <td class="neg">$(2,214)M (prior yr $(11,678)M) <span class="cites">[intc-item8-income-p001]</span></td>
+      <td>$25,484M (prior yr $13,463M) <span class="cites">[avgo-item8-income-p001]</span></td>
+    </tr>
+    <tr>
+      <td class="metric">Operating margin</td>
+      <td>60.4% <span class="cites">[nvda-item7-p009]</span></td>
+      <td>10.7%* <span class="cites">[amd-item8-income-p001]</span></td>
+      <td class="neg">−4.2%* <span class="cites">[intc-item8-income-p001]</span></td>
+      <td>39.9%* <span class="cites">[avgo-item8-income-p001]</span></td>
+    </tr>
+    <tr>
+      <td class="metric">Net income</td>
+      <td>$120,067M, +65% <span class="cites">[nvda-item7-p004]</span></td>
+      <td>$4,335M (prior yr $1,641M) <span class="cites">[amd-item8-income-p001]</span></td>
+      <td class="neg">$(267)M (prior yr $(18,756)M) <span class="cites">[intc-item8-income-p001]</span></td>
+      <td>$23,126M (prior yr $5,895M) <span class="cites">[avgo-item8-income-p001]</span></td>
+    </tr>
+    <tr>
+      <td class="metric">Main segments</td>
+      <td>Compute &amp; Networking $193,479M (+67%); Graphics $22,459M (+57%) <span class="cites">[nvda-item7-p010]</span></td>
+      <td>Data Center $16.6B (+32%); Client &amp; Gaming $14.6B (+51%); Embedded $3.5B (−3%) <span class="cites">[amd-item7-p002]</span></td>
+      <td>CCG; DCAI; Intel Foundry (plus "all other") <span class="cites">[intc-item1-p001]</span></td>
+      <td>Semiconductor Solutions; Infrastructure Software <span class="cites">[avgo-item7-p001]</span></td>
+    </tr>
+  </tbody>
+</table>
+<p class="tblnote">
+  * Computed as operating income ÷ revenue from the income statement; the filings report the absolute figures.
+  NVIDIA's 60.4% operating margin is stated in the filing itself <span class="cites">[nvda-item7-p009]</span>.
+</p>
+
+<h2>Top risks and red flags by company</h2>
+
+<div class="company">
+  <h3><span class="tag nvda">NVIDIA</span></h3>
+  <h4>Top risks (Item 1A)</h4>
+  <ul>
+    <li>Supply/demand mismatch: <blockquote>"Long manufacturing lead times and uncertain supply and capacity availability, combined with a failure to estimate customer demand accurately has led and could lead to mismatches between supply and demand" <span class="cites">[nvda-item1a-p001]</span></blockquote></li>
+    <li>Customer concentration: <blockquote>"A significant amount of our revenue stems from a limited number of partners and distributors and we have a concentration of sales to customers who purchase directly or indirectly from us" <span class="cites">[nvda-item1a-p002]</span></blockquote></li>
+    <li>Export restrictions: <blockquote>"We are subject to complex laws, rules, regulations, and political and other actions, including restrictions on the export of our products, which may adversely impact our business" <span class="cites">[nvda-item1a-p002]</span></blockquote></li>
+    <li>Dependency on third-party suppliers for manufacturing, assembly, test and packaging <span class="cites">[nvda-item1a-p001]</span>.</li>
+  </ul>
+  <h4>Red flags (financial)</h4>
+  <ul>
+    <li>$4.5 billion charge in Q1 FY26 for H20 excess inventory and purchase obligations after China export licensing requirements <span class="cites">[nvda-item7-p002]</span>.</li>
+    <li>Gross margin down 3.9 points to 71.1%, driven by the transition from Hopper HGX systems to Blackwell datacenter solutions plus the H20 charge <span class="cites">[nvda-item7-p003][nvda-item7-p004]</span>.</li>
+    <li>Inventory provisions had an unfavorable gross-margin impact of 2.6% in FY26 (2.3% in FY25) <span class="cites">[nvda-item7-p007]</span>.</li>
+    <li>$17.5 billion invested in private companies and infrastructure funds, "many of these investments are illiquid and non-marketable" <span class="cites">[nvda-item7-p006]</span>.</li>
+  </ul>
+</div>
+
+<div class="company">
+  <h3><span class="tag amd">AMD</span></h3>
+  <h4>Top risks (Item 1A)</h4>
+  <ul>
+    <li>Competition: <blockquote>"The markets in which our products are sold are highly competitive and rapidly evolving" <span class="cites">[amd-item1a-p001]</span></blockquote></li>
+    <li>Cyclicality: <blockquote>"The semiconductor industry is highly cyclical and has experienced severe downturns" <span class="cites">[amd-item1a-p001][amd-item1a-p006]</span></blockquote></li>
+    <li>Third-party manufacturing: <blockquote>"We rely on third parties to manufacture our products, and if they are unable to do so on a timely basis in sufficient quantities and using competitive technologies, our business could be materially adversely affected" <span class="cites">[amd-item1a-p001]</span></blockquote></li>
+    <li>Export controls: <blockquote>"Government actions and regulations, including but not limited to export regulations, import tariffs and trade protection measures, may limit our ability to export our products to certain customers" <span class="cites">[amd-item1a-p003]</span></blockquote></li>
+    <li>Supply chain: <blockquote>"We may fail to maintain the efficiency of our supply chain as we respond to changes in customer demand" <span class="cites">[amd-item1a-p003]</span></blockquote></li>
+  </ul>
+  <h4>Red flags (financial)</h4>
+  <ul>
+    <li>~$440 million of net inventory and related charges from U.S. export controls on the Instinct MI308 data-center GPU <span class="cites">[amd-item7-p002]</span>.</li>
+    <li>Inventories up 38% to $7,920M from $5,734M <span class="cites">[amd-item8-balance-p001]</span>.</li>
+    <li>R&amp;D up 25% to $8,091M from $6,456M <span class="cites">[amd-item8-income-p001]</span>.</li>
+    <li>ZT Systems: acquired for $3.2 billion in March 2025, then the ZT manufacturing business was sold to Sanmina for $2.4 billion in October 2025 <span class="cites">[amd-item7-p004]</span>.</li>
+    <li>OpenAI agreement: 6 gigawatts of AMD GPUs (first gigawatt on MI450) plus a warrant for up to 160 million AMD shares at $0.01 — a large capacity commitment with equity dilution <span class="cites">[amd-item7-p005]</span>.</li>
+  </ul>
+</div>
+
+<div class="company">
+  <h3><span class="tag intc">Intel</span></h3>
+  <h4>Top risks (Item 1A)</h4>
+  <ul>
+    <li>Funding the strategy: <blockquote>"we may not have the ability to fund such investments at the level needed to be competitive" — R&amp;D was $13.8 billion in 2025, $16.5 billion in 2024 <span class="cites">[intc-item1a-p004]</span></blockquote></li>
+    <li>AI accelerator failure: <blockquote>"We also missed the significant shift in compute demand to GPUs optimized for AI workloads and have been unsuccessful to date in becoming a meaningful participant in that market… Our most recent efforts to compete in the accelerator market with our Gaudi AI accelerators was unsuccessful, as a result of which we recognized Gaudi AI accelerator inventory-related charges of $375 million in 2025 and $922 million in 2024" <span class="cites">[intc-item1a-p004]</span></blockquote></li>
+    <li>14A foundry bet: <blockquote>"a potential pause or discontinuation of our pursuit of Intel 14A and other next generation leading-edge process technologies if we are unable to secure a significant external customer for Intel 14A" <span class="cites">[intc-item7-p002]</span></blockquote></li>
+    <li>Process delays have "allowed competitors using third-party foundries, such as TSMC, to benefit from advancements in manufacturing processes introduced ahead of us" <span class="cites">[intc-item1a-p004]</span>.</li>
+  </ul>
+  <h4>Red flags (financial)</h4>
+  <ul>
+    <li>Only company with declining revenue: $52,853M vs $53,101M (−0.5%) <span class="cites">[intc-item8-income-p001]</span>.</li>
+    <li>Operating loss of $(2,214)M (improved from $(11,678)M); net loss attributable to Intel of $(267)M (improved from $(18,756)M) <span class="cites">[intc-item8-income-p001]</span>.</li>
+    <li>Divested 51% of Altera on September 12, 2025 <span class="cites">[intc-item1-p001]</span>.</li>
+    <li>Slowed construction of the new Ohio fab and discontinued planned expansions in Germany and Poland <span class="cites">[intc-item7-p009]</span>.</li>
+    <li>The U.S. government's acquisition of a significant equity interest in the company is listed among the company's forward-looking risks <span class="cites">[intc-item7-p002]</span>.</li>
+  </ul>
+</div>
+
+<div class="company">
+  <h3><span class="tag avgo">Broadcom</span></h3>
+  <h4>Top risks (Item 1A)</h4>
+  <ul>
+    <li>Cyclicality in an AI-shifting industry: <blockquote>"We operate in a highly cyclical semiconductor industry that is undergoing profound change due to AI" <span class="cites">[avgo-item1a-p001]</span></blockquote></li>
+    <li>Customer concentration: <blockquote>"A significant reduction in demand or loss of one or more of our significant customers may adversely affect us" <span class="cites">[avgo-item1a-p001]</span></blockquote></li>
+    <li>Supply chain: <blockquote>"Dependence on a limited number of contract manufacturers and suppliers of critical materials and components within our supply chain" <span class="cites">[avgo-item1a-p001]</span></blockquote></li>
+    <li>Margins: "Our ability to maintain or improve gross margin" is itself listed as a risk <span class="cites">[avgo-item1a-p001]</span>.</li>
+  </ul>
+  <h4>Red flags (financial)</h4>
+  <ul>
+    <li>Total debt of ~$65.1 billion (short-term $3,152M + long-term $61,984M) <span class="cites">[avgo-item8-balance-p001]</span>.</li>
+    <li>Goodwill of $97.8 billion, largely from the VMware acquisition completed November 2023 <span class="cites">[avgo-item8-balance-p001][avgo-item7-p002]</span>.</li>
+    <li>Earnings depend on tax incentives: Singapore tax incentives and a Malaysia tax holiday reduced the income-tax provision by $2,709M in FY25 ($2,261M in FY24); the Singapore incentives expire through November 2030 <span class="cites">[avgo-item7-p004]</span>.</li>
+    <li>Heavy capital returns: $11,142M of dividends plus $2,450M of buybacks against $27,537M of cash from operations <span class="cites">[avgo-item7-p002]</span>.</li>
+  </ul>
+</div>
+
+<h2>How their positions differ in AI and data-center demand</h2>
+<ul class="positioning">
+  <li>
+    <span class="tag nvda">NVIDIA</span> <strong>— the full-stack leader.</strong>
+    <blockquote>"NVIDIA is now a data center scale AI infrastructure company reshaping all industries" <span class="cites">[nvda-item1-p001]</span></blockquote>
+    Data Center revenue grew 68% in FY26 <span class="cites">[nvda-item7-p005]</span>; within it, Data Center computing
+    grew 59% on the Blackwell platform and Data Center networking grew 142% on NVLink compute fabric for GB200/GB300
+    systems <span class="cites">[nvda-item7-p011]</span>. Blackwell's "extreme co-design" spans chips, networking,
+    systems and software: <blockquote>"Hundreds of thousands of GPUs can be interconnected to function as a single giant computer" <span class="cites">[nvda-item1-p001]</span></blockquote>
+  </li>
+  <li>
+    <span class="tag amd">AMD</span> <strong>— the GPU challenger.</strong>
+    Its Data Center segment grew 32% to $16.6 billion on EPYC processors and Instinct MI350 GPUs
+    <span class="cites">[amd-item7-p002]</span>. The OpenAI deal puts AMD's MI450 in the first gigawatt of a
+    6-gigawatt deployment <span class="cites">[amd-item7-p005]</span>, and the ZT Systems acquisition (retaining the
+    design business) was aimed at building complex AI solutions <span class="cites">[amd-item7-p004]</span>. Export
+    controls have already bitten: ~$440M of charges on the MI308 <span class="cites">[amd-item7-p002]</span>.
+  </li>
+  <li>
+    <span class="tag intc">Intel</span> <strong>— the foundry bet after the accelerator stumble.</strong>
+    Intel concedes it "missed the significant shift in compute demand to GPUs" and that its Gaudi accelerator effort
+    "was unsuccessful" <span class="cites">[intc-item1a-p004]</span>. Its AI path now runs through a partnership with
+    NVIDIA to "co-develop custom client and data center products combining our x86 CPU technologies with NVIDIA's AI
+    and accelerated computing capabilities" <span class="cites">[intc-item7-p007]</span>, while its strategic bet is
+    the 18A/14A foundry — with 14A explicitly at risk of being paused without a significant external customer
+    <span class="cites">[intc-item7-p002][intc-item7-p009]</span>.
+  </li>
+  <li>
+    <span class="tag avgo">Broadcom</span> <strong>— the custom-silicon alternative.</strong>
+    Broadcom sells "custom accelerators or XPUs" to hyperscalers, plus "Ethernet switching and routing silicon,
+    Ethernet NICs, physical layer devices (PHYs) and optical components" for large-scale AI data centers
+    <span class="cites">[avgo-item7-p001]</span>. Unlike NVIDIA's and AMD's general-purpose GPUs, Broadcom's AI
+    silicon is "built to our individual customers' specifications" <span class="cites">[avgo-item7-p001]</span> — a
+    differentiated position in the AI data-center supply chain.
+  </li>
+</ul>
+
+<h2>Note on fiscal periods</h2>
+<p>
+  NVIDIA's fiscal 2026 ended January 25, 2026 (prior year ended January 26, 2025) <span class="cites">[nvda-item7-p004]</span>;
+  AMD and Intel report on calendar-year 2025 (prior year 2024) <span class="cites">[amd-item8-income-p001][intc-item8-income-p001]</span>;
+  Broadcom's fiscal 2025 ended November 2, 2025 (prior year ended November 3, 2024) <span class="cites">[avgo-item7-p001]</span>.
+  Cross-company comparisons are therefore approximate, and each company's growth figures are on its own fiscal calendar.
+</p>
+
+<footer>
+  Generated 2026-10-03 from the 10-K excerpts in <code>data/filings/</code> (nvda.md, amd.md, intc.md, avgo.md).
+  All figures and quotes are verbatim from the filings; anchors refer to the source passages.
+</footer>
+
+</div>
+</body>
+</html>

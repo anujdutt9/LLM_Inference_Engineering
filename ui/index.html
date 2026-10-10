@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inference Pipeline</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <span class="mark" aria-hidden="true"></span>
+    <div>
+      <h1>Inference Pipeline</h1>
+      <div class="sub" id="runLabel">connecting…</div>
+    </div>
+  </div>
+
+  <div class="seg view" id="viewSeg" title="Pipeline: every call and component. Summary: the headline numbers and charts."><span data-view="pipeline" class="on">Pipeline</span><span data-view="summary">Summary</span></div>
+
+  <div class="modes">
+    <div class="seg clickable" id="modeSeg" title="Gateway mode: click to switch (asks first)">
+      <span data-mode="baseline">Baseline</span><span data-mode="route">Route</span><span data-mode="queue">Queue</span><span data-mode="full">Full</span>
+    </div>
+    <div class="features" id="featureLine"></div>
+    <div class="confirm" id="modeConfirm" hidden>
+      <div id="modeConfirmText"></div>
+      <div class="confirm-actions"><button class="btn primary" id="modeYes" type="button">Switch</button><button class="btn" id="modeNo" type="button">Cancel</button></div>
+    </div>
+  </div>
+
+  <dl class="kpis">
+    <div title="Calls that reached the gateway in the selected window"><dt>Received</dt><dd id="kpiRecv">0</dd></div>
+    <div title="Calls let through admission (or passed straight on when admission is off)"><dt>Admitted</dt><dd id="kpiAdm">0</dd></div>
+    <div title="Non-200 responses in the window, from any layer (excludes clients that hung up)"><dt>Rejected</dt><dd id="kpiShed" class="bad">0</dd></div>
+    <div title="Calls waiting right now: in the gateway queue, or inside vLLM when the gateway queue is off (it can't reorder those)"><dt>Queued</dt><dd id="kpiWait">0</dd></div>
+    <div title="Calls the engines are running right now (vLLM's count)"><dt>Running</dt><dd id="kpiRun">0</dd></div>
+    <div title="Responses sent back to clients in the window, any status"><dt>Returned</dt><dd id="kpiRet">0</dd></div>
+    <div title="Share of 200 responses that met their SLA class targets (TTFT, first answer, total)"><dt>Within SLO</dt><dd id="kpiSlo">–</dd></div>
+  </dl>
+
+  <div class="actions">
+    <div class="seg small" id="tlWindow" title="Time window for every count, table and the timeline">
+      <span data-win="120">2m</span><span data-win="300" class="on">5m</span><span data-win="900">15m</span><span data-win="3600">60m</span>
+    </div>
+    <button class="btn" id="btnClear" type="button" title="Start the panels and counts afresh from now (e.g. between experiments); nothing is deleted">Clear</button>
+    <button class="btn" id="btnPause" type="button" title="Freeze the view to inspect it; events keep being collected">Pause</button>
+    <span class="status" id="liveState"><i></i><b>Offline</b></span>
+    <button class="btn" id="btnReplay" type="button">Open replay</button>
+    <button class="btn icon" id="btnTheme" type="button" title="Toggle theme" aria-label="Toggle theme">◐</button>
+    <input type="file" id="file" accept=".jsonl,.json,.txt" multiple hidden>
+  </div>
+</header>
+
+<div class="focusbar" id="focusBar" hidden><span id="focusText"></span><button class="btn" id="focusClear" type="button">Show all tenants</button></div>
+
+<section class="summary" id="summaryView" hidden aria-label="Summary">
+  <div class="sum-kpis" id="sumKpis"></div>
+  <div class="sum-grid">
+    <article class="panel"><header><h2>Throughput and goodput</h2><span class="stat" id="chThroughputNote"></span></header><canvas class="chart" id="chThroughput"></canvas></article>
+    <article class="panel"><header><h2>TTFT and first answer</h2><span class="stat" id="chLatencyNote"></span></header><canvas class="chart" id="chLatency"></canvas></article>
+    <article class="panel"><header><h2>KV cache used</h2><span class="stat">per engine</span></header><canvas class="chart" id="chKv"></canvas></article>
+    <article class="panel"><header><h2>Queue depth and running</h2><span class="stat">queued per model · running per replica</span></header><canvas class="chart" id="chQueue"></canvas></article>
+  </div>
+  <div class="sum-models" id="sumModels"></div>
+  <div class="sum-bottom">
+    <article class="panel"><header><h2>Tenants</h2><span class="stat">completed calls in the window</span></header><div class="table-wrap"><table class="lat" id="sumTenants"></table></div></article>
+    <article class="panel"><header><h2>Refusals by layer</h2><span class="stat">non-200s in the window</span></header><div class="body" id="sumRefusals"></div></article>
+  </div>
+</section>
+
+<main>
+  <section class="diagnosis" id="diagPanel" aria-label="Findings">
+    <header><h2>Findings</h2><span class="stat" id="diagStat"></span><button class="btn" id="diagToggle" type="button">Hide</button></header>
+    <div id="diagList"></div>
+  </section>
+
+  <section class="pipeline" aria-label="Request pipeline">
+    <article class="col" id="panelClients" title="Each tenant (one tinyharness terminal, or a Locust persona) and what each of its agents is doing right now. Click a tenant to follow only it.">
+      <header><span class="step">01</span><h2>Clients</h2><span class="stat" id="tenantStat"></span></header>
+      <div class="body scroll" id="tenantList"></div>
+    </article>
+    <div class="link"><span class="arrow"></span><span class="rate" id="flow1">0/s</span></div>
+
+    <article class="col" id="panelAdmission" title="Every decision the gateway made on arrival: admitted (with its predicted TTFT / answer time against the target) or refused, with the code and the reason.">
+      <header><span class="step">02</span><h2>Admission</h2>
+        <div class="seg small" id="admFilter"><span data-f="all" class="on">All</span><span data-f="rejected">Rejected</span></div>
+        <span class="stat" id="admStat"></span></header>
+      <div class="reasons" id="admReasons"></div>
+      <div class="body scroll" id="admLog"></div>
+    </article>
+    <div class="link"><span class="arrow"></span><span class="rate" id="flow2">0/s</span></div>
+
+    <article class="col" id="panelQueue" title="Calls waiting for an engine slot, in the order the queue policy will release them. The bar under each shows how much of its queue budget it has used.">
+      <header><span class="step">03</span><h2>Queue</h2><span class="stat" id="queueStat"></span></header>
+      <div class="body scroll" id="laneList"></div>
+    </article>
+    <div class="link"><span class="arrow"></span><span class="rate" id="flow3">0/s</span></div>
+
+    <article class="col" id="panelEngines" title="Each vLLM engine: KV cache, prefix-cache hit rate, vLLM's own running / waiting counts, preemptions, and the call in each slot with its phase.">
+      <header><span class="step">04</span><h2>Engines</h2><span class="stat" id="engineStat"></span></header>
+      <div class="body scroll" id="engineList"></div>
+    </article>
+    <div class="link"><span class="arrow"></span><span class="rate" id="flow4">0/s</span></div>
+
+    <article class="col" id="panelResponses" title="What went back to the client: code, timings and whether it met its SLO.">
+      <header><span class="step">05</span><h2>Responses</h2>
+        <div class="seg small" id="respFilter"><span data-r="all" class="on">All</span><span data-r="err">Non-200</span></div>
+        <span class="stat" id="respStat"></span></header>
+      <div class="body scroll" id="respList"></div>
+    </article>
+  </section>
+
+  <section class="lower">
+    <article class="panel timeline" id="panelTimeline" title="One row per agent; each call is a bar split into waiting, prefill, thinking and answering. Dashed lines mark mode / config changes.">
+      <header>
+        <h2>Session timeline</h2>
+        <div class="legend" id="tlLegend">
+          <span><i class="sw queue"></i>Waiting / queued</span>
+          <span><i class="sw prefill"></i>Prefill</span>
+          <span><i class="sw reason"></i>Thinking</span>
+          <span><i class="sw answer"></i>Answering</span>
+          <span><i class="sw tool"></i>Local tool</span>
+          <span><i class="sw shed"></i>Rejected</span>
+        </div>
+        <div class="seg small" id="tlScale" title="Zoom: how much time the timeline spans (Window = the header's window)"><span data-fit="30">30s</span><span data-fit="120" class="on">2m</span><span data-fit="600">10m</span><span data-fit="0">Window</span></div>
+        <span class="stat">bar length = time · click a bar for the call's details</span>
+      </header>
+      <div class="tl-wrap" id="tlWrap"><canvas id="tlCanvas"></canvas><div class="tip" id="tlTip"></div></div>
+    </article>
+
+    <article class="panel incidents" id="panelIncidents" title="Every non-200 by the layer that decided it, the code and the reason, with the rule that fired; and engine / gateway events (preemptions, KV alarms, stale metrics, spills, mode changes).">
+      <header><h2>Incidents</h2><span class="stat" id="incStat">why calls were refused, and what the engines did</span></header>
+      <div class="body scroll">
+        <h3>Non-200 responses by layer, code and reason</h3>
+        <div class="layers" id="rejLayers"></div>
+        <div id="rejTable"></div>
+        <h3>Engine and gateway events</h3>
+        <div id="engEvents"></div>
+      </div>
+    </article>
+  </section>
+
+  <section class="panel latency">
+    <header><h2>Latency and SLO</h2><span class="stat">completed calls, selected window</span></header>
+    <div class="table-wrap"><table id="latTable"></table></div>
+  </section>
+</main>
+
+<aside class="drawer" id="drawer" hidden>
+  <header><h2 id="drawerTitle">Call</h2><button class="btn icon" id="drawerClose" type="button" aria-label="Close">✕</button></header>
+  <div class="drawer-body" id="drawerBody"></div>
+</aside>
+
+<footer class="replay" id="replayBar" hidden>
+  <button class="btn" id="btnPlay" type="button">Pause</button>
+  <div class="seg small speeds">
+    <span data-speed="1">1×</span><span data-speed="2">2×</span><span data-speed="5" class="on">5×</span><span data-speed="10">10×</span><span data-speed="30">30×</span>
+  </div>
+  <select id="chapters" class="btn" aria-label="Jump to an experiment" hidden></select>
+  <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Replay position">
+  <span class="mono" id="replayTime">0:00 / 0:00</span>
+  <span class="muted" id="replayName"></span>
+  <button class="btn" id="btnLive" type="button">Back to live</button>
+</footer>
+
+<div class="drop" id="drop" hidden><div>Drop one or more <b>events.jsonl</b> files to replay them</div></div>
+
+<script src="app.js"></script>
+</body>
+</html>

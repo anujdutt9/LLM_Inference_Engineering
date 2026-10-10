@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orch-serve
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: orch-serve
+  template:
+    metadata:
+      labels:
+        app: orch-serve
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: orch
+          image: python:3.12-slim
+          workingDir: /app
+          command:
+            - sh
+            - -c
+            # the gateway block of requirements.txt only (not the laptop's load/analysis tools)
+            - sed -n '/^# --- gateway/,/^# --- end gateway/p' requirements.txt > /tmp/req.txt && pip install -q -r /tmp/req.txt && python -m gateway.serve
+          env:
+            - name: PYTHONUNBUFFERED
+              value: "1"
+            - name: SERVE_HOST
+              value: "0.0.0.0"
+            # Everything else (pools, SLA classes, admission, queue, routing) is in
+            # gateway/config.yaml; experiments switch the mode with POST /admin/mode.
+            - name: ORCH_CONFIG
+              value: /app/gateway/config.yaml
+            - name: ORCH_RESULTS_DIR  # per-run event logs: results/<exp>/<run>/gateway/
+              value: /app/results
+            - name: HF_HOME  # the Qwen tokenizer, for exact token counts at admission
+              value: /root/.cache/huggingface
+            - name: OVERFLOW_API_KEY  # Superlinked; created by setup/overflow_secret.sh (optional: no key = the gate only counts)
+              valueFrom:
+                secretKeyRef:
+                  name: orch-overflow
+                  key: OVERFLOW_API_KEY
+                  optional: true
+          ports:
+            - containerPort: 8080
+              hostPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            periodSeconds: 5
+          volumeMounts:
+            - name: project
+              mountPath: /app
+            - name: hf-cache
+              mountPath: /root/.cache/huggingface
+      volumes:
+        - name: project
+          hostPath:
+            path: /home/ubuntu/llm-inference
+            type: Directory
+        - name: hf-cache
+          hostPath:
+            path: /home/ubuntu/hf-cache
+            type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orch-serve
+spec:
+  selector:
+    app: orch-serve
+  ports:
+    - port: 8080
+      nodePort: 30080
+  type: NodePort

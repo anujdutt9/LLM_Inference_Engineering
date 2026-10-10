@@ -1,0 +1,53 @@
+# Live gateway settings for Exp-4: each variant is a patch over gateway/config.yaml, applied with
+# POST /admin/config (experiments/variant.sh <group>/<name>, or the exp4_*.sh scripts). Every call
+# records the variant it ran under.
+#
+# Exp-4: does a second replica of the same model move the knee
+# (serving-layer scale-out), and does placement matter once there's a choice? Both 9B replicas stay
+# deployed in every variant; `one` sends traffic to qwen-9b-a only (qwen-9b-b idle), so the variants differ only
+# in how many replicas receive traffic and how calls are placed. Mode `route`: no gateway queue and
+# no admission, so this measures capacity, not refusals (waiting happens inside vLLM); overflow to
+# Superlinked off, so every call is served by the local replicas.
+scale:
+  one:         {mode: route, overflow: {enabled: false}, routing: {policy: round_robin}, pools: {qwen-9b: {replicas: ["http://vllm-9b-a:8001"]}}}
+  round_robin: {mode: route, overflow: {enabled: false}, routing: {policy: round_robin}, pools: {qwen-9b: {replicas: ["http://vllm-9b-a:8001", "http://vllm-9b-b:8002"]}}}
+  prefix_p2c:  {mode: route, overflow: {enabled: false}, routing: {policy: prefix_p2c}, pools: {qwen-9b: {replicas: ["http://vllm-9b-a:8001", "http://vllm-9b-b:8002"]}}}
+
+
+# Exp-4 part 3: the gateway's control plane on the two-replica fleet, under the same fixed Locust load
+# (a short demonstration, not the capacity comparison): route = overload waits inside vLLM; queue = the
+# wait moves into the gateway's bounded, ordered queue; full = admission refuses what can't meet its
+# SLA (429) or what the fleet has no safe room for (503). Placement prefix_p2c in all three.
+modes:
+  route: {mode: route, overflow: {enabled: false}, routing: {policy: prefix_p2c}, pools: {qwen-9b: {replicas: ["http://vllm-9b-a:8001", "http://vllm-9b-b:8002"]}}}
+  queue: {mode: queue, overflow: {enabled: false}, routing: {policy: prefix_p2c}, pools: {qwen-9b: {replicas: ["http://vllm-9b-a:8001", "http://vllm-9b-b:8002"]}}}
+  full:  {mode: full, overflow: {enabled: false}, routing: {policy: prefix_p2c}, pools: {qwen-9b: {replicas: ["http://vllm-9b-a:8001", "http://vllm-9b-b:8002"]}}}
+
+# Exp-4 extra block (experiments/exp4_more.sh). Both replicas, overflow off.
+# A · routing policies on the placement workload (LOAD_DOCS distinct documents), mode route: which placement
+# keeps the documents cached, balances the load, and serves the most within target?
+routing:
+  round_robin:  {mode: route, overflow: {enabled: false}, routing: {policy: round_robin},  pools: {qwen-9b: {replicas: ["http://vllm-9b-a:8001", "http://vllm-9b-b:8002"]}}}
+  least_loaded: {mode: route, overflow: {enabled: false}, routing: {policy: least_loaded}, pools: {qwen-9b: {replicas: ["http://vllm-9b-a:8001", "http://vllm-9b-b:8002"]}}}
+  p2c:          {mode: route, overflow: {enabled: false}, routing: {policy: p2c},          pools: {qwen-9b: {replicas: ["http://vllm-9b-a:8001", "http://vllm-9b-b:8002"]}}}
+  prefix_p2c:   {mode: route, overflow: {enabled: false}, routing: {policy: prefix_p2c},   pools: {qwen-9b: {replicas: ["http://vllm-9b-a:8001", "http://vllm-9b-b:8002"]}}}
+
+# B · how deep should the gateway queue be? Mode queue (the queue on, admission off), so only the bound
+# differs: a call that would wait beyond it gets 503 queue_full. depth_0: no waiting at all.
+queue_depth:
+  depth_0:  {mode: queue, overflow: {enabled: false}, queue: {max_depth_per_lane: 0},  routing: {policy: prefix_p2c}, pools: {qwen-9b: {replicas: ["http://vllm-9b-a:8001", "http://vllm-9b-b:8002"]}}}
+  depth_2:  {mode: queue, overflow: {enabled: false}, queue: {max_depth_per_lane: 2},  routing: {policy: prefix_p2c}, pools: {qwen-9b: {replicas: ["http://vllm-9b-a:8001", "http://vllm-9b-b:8002"]}}}
+  depth_8:  {mode: queue, overflow: {enabled: false}, queue: {max_depth_per_lane: 8},  routing: {policy: prefix_p2c}, pools: {qwen-9b: {replicas: ["http://vllm-9b-a:8001", "http://vllm-9b-b:8002"]}}}
+  depth_64: {mode: queue, overflow: {enabled: false}, queue: {max_depth_per_lane: 64}, routing: {policy: prefix_p2c}, pools: {qwen-9b: {replicas: ["http://vllm-9b-a:8001", "http://vllm-9b-b:8002"]}}}
+
+# D/E · a replica dies under load and comes back (before / after the gateway routes only to live replicas).
+# round_robin so half the calls would go to the dead replica if the gateway kept sending them there.
+kill:
+  round_robin: {mode: route, overflow: {enabled: false}, routing: {policy: round_robin}, pools: {qwen-9b: {replicas: ["http://vllm-9b-a:8001", "http://vllm-9b-b:8002"]}}}
+
+# Head-to-head (experiments/exp4_h2h.sh). H1 needs the fleet redeployed with MAX_SEQS=16.
+h2h:
+  one16:          {mode: route, overflow: {enabled: false}, routing: {policy: round_robin}, pools: {qwen-9b: {replicas: ["http://vllm-9b-a:8001"], slots_per_replica: 16}}}
+  round_robin:    {mode: route, overflow: {enabled: false}, routing: {policy: round_robin}, pools: {qwen-9b: {replicas: ["http://vllm-9b-a:8001", "http://vllm-9b-b:8002"]}}}
+  prefix_p2c:     {mode: route, overflow: {enabled: false}, routing: {policy: prefix_p2c}, pools: {qwen-9b: {replicas: ["http://vllm-9b-a:8001", "http://vllm-9b-b:8002"]}}}
+  prefix_p2c_v2:  {mode: route, overflow: {enabled: false}, routing: {policy: prefix_p2c_v2, prefix_memory_blocks: 200}, pools: {qwen-9b: {replicas: ["http://vllm-9b-a:8001", "http://vllm-9b-b:8002"]}}}

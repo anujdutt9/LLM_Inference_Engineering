@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NovaAI — Business &amp; Platform Investigation, March–August 2026</title>
+<style>
+  :root {
+    --ink: #1a2332;
+    --muted: #5b6b7f;
+    --line: #dde4ec;
+    --bg: #f7f9fc;
+    --card: #ffffff;
+    --accent: #1f5eff;
+    --bad: #c62f2f;
+    --good: #1e7d43;
+    --code-bg: #f2f5f9;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.55;
+    font-size: 15px;
+  }
+  .page {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 40px 28px 64px;
+  }
+  header.masthead {
+    border-bottom: 3px solid var(--ink);
+    padding-bottom: 18px;
+    margin-bottom: 28px;
+  }
+  h1 {
+    font-size: 27px;
+    line-height: 1.25;
+    margin: 0 0 10px;
+    letter-spacing: -0.01em;
+  }
+  .meta {
+    color: var(--muted);
+    font-size: 13.5px;
+  }
+  .meta code { font-size: 12.5px; }
+  h2 {
+    font-size: 20px;
+    margin: 40px 0 14px;
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+    letter-spacing: -0.005em;
+  }
+  h3 {
+    font-size: 16.5px;
+    margin: 26px 0 10px;
+  }
+  p { margin: 10px 0; }
+  code {
+    font-family: "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12.5px;
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+  pre code {
+    background: none;
+    padding: 0;
+    font-size: 12.5px;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 14px 0;
+    font-size: 13.5px;
+    background: var(--card);
+  }
+  th, td {
+    border: 1px solid var(--line);
+    padding: 7px 10px;
+    text-align: left;
+  }
+  th {
+    background: #eef2f8;
+    font-weight: 600;
+    font-size: 12.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--muted);
+  }
+  tr:nth-child(even) td { background: #fafbfe; }
+  .bad { color: var(--bad); font-weight: 600; }
+  .good { color: var(--good); font-weight: 600; }
+  ul.timeline {
+    list-style: none;
+    margin: 14px 0;
+    padding: 0;
+    border-left: 2px solid var(--line);
+  }
+  ul.timeline li {
+    position: relative;
+    padding: 0 0 14px 22px;
+  }
+  ul.timeline li::before {
+    content: "";
+    position: absolute;
+    left: -6px;
+    top: 6px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  ul.timeline li.sev::before { background: var(--bad); }
+  ul.timeline li.fix::before { background: var(--good); }
+  .finding {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 6px 22px 18px;
+    margin: 18px 0;
+  }
+  .finding h3 { margin-top: 18px; }
+  .finding .num {
+    display: inline-block;
+    background: var(--ink);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 5px;
+    padding: 2px 8px;
+    margin-right: 8px;
+    vertical-align: 2px;
+  }
+  .note {
+    background: #eef4ff;
+    border: 1px solid #c9d9f7;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13.5px;
+    margin: 20px 0;
+  }
+  footer.verification {
+    margin-top: 36px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 12.5px;
+    font-style: italic;
+  }
+  strong { font-weight: 650; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="masthead">
+  <h1>NovaAI — Business &amp; Platform Investigation, March–August 2026</h1>
+  <div class="meta">
+    <strong>Source:</strong> <code>data/nova_ai.db</code> (operations database, 2026-03-01 → 2026-08-31; as-of 2026-09-01).<br>
+    <strong>Method:</strong> four parallel <code>sql-analyst</code> investigations (revenue/plans/churn · usage/latency/quality · incidents/deployments · support/feedback), reconciled cross-area; every disputed number re-verified with a fifth SQL pass. <code>usage_events</code> is a 1-in-1000 sample; "est." figures are ×1000.
+  </div>
+</header>
+
+<h2>Summary</h2>
+<p>NovaAI's revenue looked flat-to-stable from March to August 2026 ($6.54M → $6.60M), but the surface hid two structural facts. First, a June 3 inference-engine deployment (v2.8.0) silently cut the chunked-prefill token budget and 2.6×'d time-to-first-token for nova-reasoning prompts over 16K tokens; because fleet-wide median latency was unaffected, it went undetected for 63 days. The resulting SLA breaches produced $72.2K of June credits (84.8% of all June credits) and six large Enterprise accounts churned in July — 98% of the $716.6K of MRR lost that month — pulling July revenue down 7.8% to $6.15M. Second, August's "recovery" to $6.60M is an illusion: it is driven almost entirely by one customer's batch job (Helix Genomics, $422K usage charge, ~7.8M true requests) that saturated US-East and caused 37 of 38 August 503 errors; ex-Helix, August revenue was ~$6.17M, still the depressed July level. Two further deployment regressions (the May 19–21 Europe rate-limiter and the July 14–16 US-West router — the half-year's only SEV1) made July the worst month for support (1,058 tickets, 151 critical, 55.3% negative sentiment) and availability (99.878%, the lowest). The good news: model quality never degraded (all quality ratings stable), the August 10 KV-cache v2.0.0 doubled cache hit rate with no latency cost, and the Business plan grew +25.2% — but with Enterprise MRR down ~$702K/month structurally and only 2–4 Enterprise signups per month, the lost revenue is unrecoverable until new logos arrive.</p>
+
+<h2>Monthly snapshot</h2>
+<table>
+  <thead>
+    <tr><th>Month</th><th>Revenue</th><th>Est. requests</th><th>TTFT P99 (ms)</th><th>Availability</th><th>Tickets</th><th>Incident downtime</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Mar</td><td>$6,538,422</td><td>35.1M</td><td>1,905</td><td>99.980%</td><td>721</td><td>19.6 h</td></tr>
+    <tr><td>Apr</td><td>$6,580,087</td><td>36.6M</td><td>1,946</td><td>99.978%</td><td>671</td><td>24.7 h</td></tr>
+    <tr><td>May</td><td>$6,671,388</td><td>38.5M</td><td>1,935</td><td>99.979%</td><td>757</td><td>77.7 h</td></tr>
+    <tr><td>Jun</td><td>$6,666,982</td><td>40.5M</td><td class="bad">4,440</td><td>99.985%</td><td>748</td><td class="bad">1,081.3 h</td></tr>
+    <tr><td>Jul</td><td class="bad">$6,146,887</td><td>42.9M</td><td>3,554</td><td class="bad">99.878%</td><td class="bad">1,058</td><td>78.7 h</td></tr>
+    <tr><td>Aug</td><td>$6,596,469</td><td class="bad">51.4M</td><td>5,830</td><td>99.920%</td><td>864</td><td>105.8 h</td></tr>
+  </tbody>
+</table>
+<p>June's downtime is almost entirely one incident (INC-2026-0099, 1,059 h); June excluding it (22.3 h) is normal. August's P99 includes the Helix batch windows.</p>
+
+<h2>Timeline — what changed and when</h2>
+<ul class="timeline">
+  <li><strong>Mar (baseline).</strong> $6.54M revenue; mix stable (nova-small ~53%, nova-reasoning ~32%, nova-vision ~15%); availability ~99.98%.</li>
+  <li><strong>Apr.</strong> Stable; $6.58M.</li>
+  <li class="sev"><strong>May 19–21.</strong> Rate-limiter v3.4.0 (DEP-0015, Europe) ships with a units bug → agents 429 rate 0.8% → 29.8% (INC-2026-0066, 43.3 h). Rolled back May 21 (DEP-0016). 201 rate-limiting tickets in May (34 on May 20 alone).</li>
+  <li class="sev"><strong>Jun 3.</strong> Inference-engine v2.8.0 (DEP-0021) deploys → chunked-prefill budget halved → nova-reasoning TTFT for &gt;16K-token prompts jumps 1,516 ms → 4,037 ms. <strong>Not detected</strong>: fleet p50 unchanged, no canary fires.</li>
+  <li class="sev"><strong>Jun 22.</strong> INC-2026-0099 declared (SEV3, global) — 19 days after the deploy. June: TTFT P99 4,440 ms; $85.2K credits, of which $72.2K go to six affected Enterprise accounts.</li>
+  <li class="sev"><strong>Jul 3–17.</strong> The six Enterprise accounts churn (Quantix 7/3, Meridian 7/6, Arcadia 7/8, Brightline 7/10, Solace 7/14, Vantage 7/17) = <span class="bad">$702K MRR = 98% of July's $716.6K churned MRR</span>.</li>
+  <li class="sev"><strong>Jul 14–16.</strong> Router v5.2.0 (DEP-0037, US-West) → INC-2026-0109, the half-year's only SEV1: nova-reasoning TTFT 697 → 2,520 ms, 429/529 0.6% → 10.6%. Rolled back Jul 16 (DEP-0038). Support spikes: 51–72 latency/error/429 tickets per day vs a 6–17 baseline.</li>
+  <li class="sev"><strong>Jul (month).</strong> Revenue $6.15M (−7.8%); 1,058 tickets (151 critical); 55.3% negative sentiment; availability 99.878% (lowest); $154.3K credits (95 invoices).</li>
+  <li class="fix"><strong>Aug 5.</strong> DEP-0041 (v2.9.1) fixes INC-0099 after 44 days; long-prompt TTFT recovers to ~1,876 ms.</li>
+  <li class="fix"><strong>Aug 10.</strong> DEP-0043 ships KV-cache v2.0.0 → cache hit rate steps 0.25 → 0.447 with no latency cost.</li>
+  <li class="sev"><strong>Aug 17–28.</strong> Helix Genomics starts a nova-reasoning document_analysis batch (daily 13:00–15:00 UTC) that saturates US-East: queue depth 258–484, GPU 95–97%, US-East p99 TTFT 1,600 → 17,205 ms in the windows, 37 of 38 August 503s (INC-2026-0144).</li>
+  <li class="fix"><strong>Aug 31.</strong> DEP-0052: dedicated batch queue with admission control.</li>
+  <li><strong>Aug (month).</strong> Revenue $6.60M — but $422K of the usage charge is Helix; ex-Helix ≈ $6.17M. 51.4M requests (+20% vs Jul).</li>
+</ul>
+
+<h2>The 5 most material findings</h2>
+
+<div class="finding">
+  <h3><span class="num">1</span>The June 3 inference-engine regression cost ~$702K/month of Enterprise MRR — and 76% of all incident downtime</h3>
+  <p><strong>What caused it.</strong> DEP-0021 (inference-engine v2.8.0, deployed Jun 3) halved the per-step chunked-prefill token budget to improve decode fairness. Only long prompts (&gt;16K tokens) were affected, so fleet-wide p50 TTFT stayed flat and no canary fired. Undetected for 63 days: deployed Jun 3, declared Jun 22 (INC-2026-0099), fixed Aug 5 (DEP-0041, v2.9.1).</p>
+  <p><strong>Numbers.</strong></p>
+  <ul>
+    <li>Avg TTFT for nova-reasoning prompts &gt;16K tokens: <strong>1,516 ms</strong> (before Jun 3) → <span class="bad">4,037 ms</span> (Jun 3–Aug 5, 2.6×) → <span class="good">1,876 ms</span> (after Aug 5).</li>
+    <li>Monthly TTFT P99: ~1,900–1,950 ms (Mar–May) → <span class="bad">4,440 ms</span> (Jun) → 3,554 ms (Jul) → 5,830 ms (Aug, includes the Helix batch).</li>
+    <li>INC-2026-0099 ran 1,059 h = <strong>76% of all 1,387.8 h</strong> of Mar–Aug incident downtime.</li>
+    <li>The six churned accounts' own nova-reasoning avg TTFT: ~1,185 ms (Mar–May) → 2,505 ms (Jun); their request volume also fell in June (935 vs ~1,250 sampled/mo) — disengagement before churn.</li>
+    <li><strong>$72,245</strong> of June credits went to the six = <strong>84.8%</strong> of all June credits ($85,183).</li>
+    <li>The six churned Jul 3–17: Meridian Health $165K, Quantix Capital $140K, Brightline Retail $120K, Arcadia Logistics $105K, Solace Insurance $92K, Vantage Biolabs $80K = <span class="bad">$702,000 MRR = 98.0% of July churned MRR ($716,622)</span>.</li>
+    <li>July revenue <span class="bad">$6,146,887 = −7.8%</span> vs June $6,666,982; Enterprise base subscription $4.86M (Jun) → $4.39M (Jul) → $4.25M (Aug).</li>
+    <li>Support: nova-reasoning ratings 3.81 (May) → 3.37 (Jun) → 3.24 (Jul) → 3.83 (Aug); latency-category feedback 207 → 372 → 427 items at avg 2.84–2.86; churn-risk critical tickets ("Evaluating alternative providers" 4 Jun + 8 Jul; "Reducing usage until latency is fixed" 6 + 5); "SLA violations for 20 consecutive days" escalations in June.</li>
+  </ul>
+  <pre><code>-- Long-prompt TTFT before / during / after the regression
+SELECT CASE WHEN timestamp&lt;'2026-06-03' THEN 'before'
+            WHEN timestamp&lt;'2026-08-05' THEN 'during' ELSE 'after' END p,
+       COUNT(*) n, ROUND(AVG(ttft_ms)) avg_ttft
+FROM usage_events
+WHERE model='nova-reasoning' AND input_tokens&gt;16000
+  AND ttft_ms IS NOT NULL AND timestamp&gt;='2026-05-01'
+GROUP BY 1;
+-- before: 1,516 ms (n=1,517) | during: 4,037 ms (n=1,923) | after: 1,876 ms (n=2,427)
+
+-- Churned MRR by month
+SELECT substr(churn_date,1,7) m, COUNT(*) n, ROUND(SUM(monthly_contract_value),0) mrr
+FROM customers WHERE status='churned' GROUP BY m ORDER BY m;
+-- Jul: 61 customers, $716,622
+
+-- June credits of the six churned enterprises
+SELECT i.billing_month, c.company_name, ROUND(SUM(i.credits),0) credits
+FROM invoices i JOIN customers c USING(customer_id)
+WHERE c.company_name IN ('Meridian Health Systems','Quantix Capital','Brightline Retail Group',
+ 'Arcadia Logistics','Solace Insurance','Vantage Biolabs')
+GROUP BY i.billing_month, c.company_name;
+-- June: $72,245 total for the six</code></pre>
+</div>
+
+<div class="finding">
+  <h3><span class="num">2</span>August's "recovery" to $6.60M is one customer's batch job — and that job degraded US-East for everyone else</h3>
+  <p><strong>What caused it.</strong> Helix Genomics (Enterprise, US-East, customer 817) started a <code>nova-reasoning</code> + <code>document_analysis</code> batch on <strong>Aug 17</strong>, running daily 13:00–15:00 UTC through Aug 28. The shared queue had no admission control, so the batch saturated the region (INC-2026-0144, "noisy-neighbor batch workload"). Fixed by DEP-0052 (Aug 31): a dedicated batch queue with admission control.</p>
+  <p><strong>Numbers.</strong></p>
+  <ul>
+    <li>Helix August usage charge: <span class="bad">$422,161</span> (vs $963–1,588/mo Mar–Jul); total August invoice ≈ $540K.</li>
+    <li>7,817 sampled requests in August (~7.8M true) vs 2–5 sampled/mo Mar–Jul; ~101B true input tokens (101.4M sampled).</li>
+    <li>August revenue $6,596,469; <strong>ex-Helix ≈ $6.17M</strong> — the July depressed level. August usage revenue $887.0K vs $485.3K (Jul); ex-Helix $464,865.</li>
+    <li>Platform impact during batch hours: US-East queue depth <span class="bad">258–484</span>, GPU utilization 95–97%; <span class="bad">37 of 38 August 503s</span> (all US-East, exactly on batch days); US-East p99 TTFT <span class="bad">1,600 → 17,205 ms (10.8×)</span> in the 13:00–16:00 windows; other US-East customers mildly affected (P95 761 → 859 ms).</li>
+    <li>August volume: 51.4M requests (+20%), input tokens 248.0B (+72%); document_analysis 14.0% → 27.3% of traffic.</li>
+    <li>Support: 13 embeddings (nova-small) latency complaints Aug 17–28, avg rating 2.15.</li>
+  </ul>
+  <pre><code>-- Helix usage charge by month
+SELECT i.billing_month, ROUND(SUM(i.usage_charge),0)
+FROM invoices i JOIN customers c USING(customer_id)
+WHERE c.company_name='Helix Genomics' GROUP BY i.billing_month;
+-- Mar–Jul: ~$1K/mo | Aug: $422,161
+
+-- The batch, day by day
+SELECT date(timestamp) d, COUNT(*) n, SUM(input_tokens) in_tok, ROUND(AVG(ttft_ms)) avg_ttft
+FROM usage_events
+WHERE customer_id=817 AND model='nova-reasoning' AND endpoint='document_analysis'
+GROUP BY d ORDER BY d;
+-- Aug 17–28: ~750–825 sampled reqs/day, ~10M sampled input tokens/day
+
+-- US-East saturation during the batch
+SELECT hour, avg_queue_depth, avg_gpu_utilization_pct, max_worker_utilization_pct
+FROM gpu_cluster_metrics
+WHERE region='US-East' AND hour&gt;='2026-08-17 00:00:00' AND hour&lt;'2026-08-18 00:00:00'
+ORDER BY hour;
+-- 13:00–15:00 hours: queue depth 258–484, GPU 95–97%</code></pre>
+</div>
+
+<div class="finding">
+  <h3><span class="num">3</span>The half-year's only SEV1 was a router deployment (Jul 14–16, US-West) — and it made July the worst support month</h3>
+  <p><strong>What caused it.</strong> DEP-0037 (router v5.2.0, deployed Jul 14 07:40) switched to a weighted-least-loaded policy that herded nova-reasoning traffic onto ~20% of GPU workers until they hit 99% utilization and KV-cache saturation. Rolled back to v5.1.4 (DEP-0038) Jul 16 19:50. INC-2026-0109: 59.6 h, US-West, nova-reasoning.</p>
+  <p><strong>Numbers.</strong></p>
+  <ul>
+    <li>US-West nova-reasoning, incident window vs control: avg TTFT <span class="bad">697 → 2,520 ms (3.6×)</span>; 429/529 rate <span class="bad">0.6% → 10.6%</span>; prefix-cache hit 0.287 → 0.13.</li>
+    <li>July availability <span class="bad">99.878%</span> — the lowest of the six months (others 99.978–99.985%).</li>
+    <li>Support: <span class="bad">1,058 tickets in July (151 critical)</span> vs ~700/mo (~30 critical) baseline; 51/57/72/49 latency+error+429 tickets per day Jul 14–17 vs a 6–17/day baseline; negative+very-negative sentiment <span class="bad">55.3%</span> (Jul) vs 43.7–46.6% other months; very-negative tickets 189 (Jul) vs 29–81.</li>
+    <li>SLA credits issued to affected Enterprise customers on July invoices (July credits $154.3K across 95 invoices — the highest of the half-year).</li>
+  </ul>
+  <pre><code>-- Router incident: incident window vs control (US-West, nova-reasoning, Jul 7–23)
+SELECT CASE WHEN timestamp&gt;='2026-07-14' AND timestamp&lt;'2026-07-16 20:00:00'
+            THEN 'incident' ELSE 'control' END p,
+       COUNT(*), ROUND(AVG(ttft_ms),0),
+       ROUND(100.0*SUM(status_code IN (429,529))/COUNT(*),1),
+       ROUND(AVG(cache_hit),3)
+FROM usage_events
+WHERE gpu_region='US-West' AND model='nova-reasoning'
+  AND timestamp&gt;='2026-07-07' AND timestamp&lt;'2026-07-23'
+GROUP BY 1;
+-- control: 697 ms, 0.6%, 0.287 (n=2,054) | incident: 2,520 ms, 10.6%, 0.13 (n=339)
+
+-- Daily support spike
+SELECT substr(created_at,1,10) d, COUNT(*) n, SUM(severity IN ('critical','high')) hi
+FROM support_tickets
+WHERE category IN ('latency','errors','rate_limiting')
+  AND created_at&gt;='2026-07-01' AND created_at&lt;'2026-07-31'
+GROUP BY d ORDER BY d;
+-- Jul 14: 51 | Jul 15: 57 | Jul 16: 72 | Jul 17: 49 (baseline 6–17/day)</code></pre>
+</div>
+
+<div class="finding">
+  <h3><span class="num">4</span>Deployment regressions are the dominant failure mode: 78.3% of all downtime, and the release process has no latency regression gate</h3>
+  <p><strong>What caused it.</strong> No single cause — a pattern. 25 of 146 incidents (17%) have root_cause 'deployment regression' but account for <span class="bad">1,086.6 of 1,387.8 h (78.3%)</span> of downtime. All 4 rolled-back deployments (of 52) map to declared incidents, and the three components with rollbacks — inference-engine (2/10, 20%), router (1/6), rate-limiter (1/10) — are exactly the latency-sensitive ones. The worst case (DEP-0021) was not even flagged <code>rolled_back=1</code>; it was fixed forward 63 days later.</p>
+  <p><strong>Numbers.</strong></p>
+  <ul>
+    <li>Root-cause totals: deployment regression 25 incidents / 1,086.6 h; GPU saturation 34 / 36.6 h (chronic but short-lived); networking 24 / 23.3 h; routing imbalance 9 / 66.1 h; rate-limiter misconfig 11 / 50.7 h.</li>
+    <li>52 deployments Mar–Aug (5/5/8/10/9/11 per month) — steady cadence, no release spike; 4 rollbacks (7.7%).</li>
+    <li>The four rollbacks: inference-engine v5.2.7 (May 7), rate-limiter v3.4.0 (May 19 → INC-2026-0066: Europe agents 429 rate 0.8% → 29.8%, May 19–21), inference-engine v2.9.5 (Jul 10), router v5.2.0 (Jul 14 → INC-2026-0109).</li>
+    <li>Detection gap on the worst incident: deployed Jun 3, declared Jun 22 (19 days), fixed Aug 5 (63 days).</li>
+  </ul>
+  <pre><code>-- Downtime by root cause
+SELECT root_cause, COUNT(*) n,
+       ROUND(SUM((julianday(end_time)-julianday(start_time))*24),1) h
+FROM incidents GROUP BY 1 ORDER BY h DESC;
+-- deployment regression: 25, 1,086.6 h | GPU saturation: 34, 36.6 h | ...
+
+-- Rollback rate per component
+SELECT component, COUNT(*) n, SUM(rolled_back) rb
+FROM deployments GROUP BY 1 ORDER BY 3 DESC;
+-- inference-engine 10/2 | router 6/1 | rate-limiter 10/1 | all others 0</code></pre>
+</div>
+
+<div class="finding">
+  <h3><span class="num">5</span>Structural mix shift: Business is the only growth engine (+25.2%); Enterprise is shrinking and the lost MRR is not being replaced</h3>
+  <p><strong>What caused it.</strong> Steady Business-plan acquisition (21–25 signups/mo, low churn) against Enterprise attrition (the June churn plus normal churn) with only 2–4 Enterprise signups per month.</p>
+  <p><strong>Numbers.</strong></p>
+  <ul>
+    <li>Business: 345 → 413 customers; revenue $1,205,881 (Mar) → $1,509,888 (Aug), <span class="good">+25.2%</span>.</li>
+    <li>Enterprise: 234 → 233 customers; $5,189,655 (Mar) → $4,917,276 (Aug), <span class="bad">−5.1%</span>; base subscription $4.86M (Jun) → $4.25M (Aug) after the six-account churn.</li>
+    <li>Pro: $142.9K → $169.3K. Overall signups healthy: 75/88/84/81/87/70 per month; net customer count positive every month.</li>
+    <li>With Enterprise MRR down ~$702K/mo structurally and only 2–4 Enterprise signups/mo, the churned June MRR is unrecoverable without new logo growth.</li>
+    <li>Payment health stable: failed 13–24/mo, overdue 41–55/mo; July overdue rose to $361K (includes the six churned enterprises' prorated July invoices, $164K).</li>
+  </ul>
+  <pre><code>-- Revenue and customer count by plan and month
+SELECT billing_month, plan, COUNT(*) cust, ROUND(SUM(total_amount),0) revenue
+FROM invoices JOIN customers USING(customer_id)
+GROUP BY billing_month, plan ORDER BY billing_month, plan;
+-- Business: $1,205,881 (Mar) -&gt; $1,509,888 (Aug) | Enterprise: $5,189,655 -&gt; $4,917,276</code></pre>
+</div>
+
+<h2>What went well</h2>
+<ul>
+  <li><strong>Model quality never degraded.</strong> Quality-category feedback ratings were stable all six months (nova-reasoning 4.38–4.46, nova-vision 3.88–4.05, nova-small 3.57–3.73). Every degradation this half-year was latency or capacity, not model quality.</li>
+  <li><strong>KV-cache v2.0.0 (DEP-0043, Aug 10)</strong> — the first kv-cache component deployment — doubled the prefix-cache hit rate (0.25 → 0.447 monthly; daily step 0.245 → 0.409 on Aug 10) with no latency cost.</li>
+  <li><strong>Support did not buckle.</strong> Median resolution time <em>improved</em> (21.7 h Mar → 16.1 h Jul) despite 40% more ticket volume in July.</li>
+</ul>
+
+<h2>Open questions</h2>
+<ol>
+  <li><strong>What drove Helix Genomics' ~1,500× August surge</strong> in nova-reasoning document_analysis — a new workload, a contract/pricing change, or a one-off backfill? If it is one-off, ex-Helix August revenue (~$6.17M) is the true run-rate and September may look like July again.</li>
+  <li><strong>How much of the $702K/mo is recoverable?</strong> 24 critical tickets in Jun–Jul carried churn-risk language ("Evaluating alternative providers", "Reducing usage until latency is fixed") — did those specific customers churn in Aug/Sep? (August churned MRR was only $26.1K, suggesting no — worth confirming by name.)</li>
+  <li><strong>SLA exposure continued past the June churn:</strong> July credits were $154.3K across 95 invoices (including credits to Helix, McCarthy and Werner-Carter). Are other Enterprise accounts at risk of the same credit-then-churn pattern?</li>
+  <li><strong>Process:</strong> why did a 2.6× latency regression take 19 days to declare and 63 days to fix? The fix (DEP-0041) added a long-prompt latency canary — has it been backfilled to all regions/components, and are there pre-release latency regression gates for the three components that have rolled back (inference-engine, router, rate-limiter)?</li>
+  <li><strong>Data inconsistencies to correct:</strong> INC-2026-0144's <code>end_time</code> (Aug 29) precedes its fix deployment DEP-0052 (Aug 31); DEP-0021 (cause of the worst incident) is not flagged <code>rolled_back=1</code> (fixed forward); deployment version numbers are non-monotonic across months (v5.2.7 → v2.8.0 → v2.9.1 for inference-engine), making "v2.8" ambiguous.</li>
+  <li><strong>Commercial response to the noisy neighbor:</strong> Helix's batch ran 12 days before admission control landed (DEP-0052, Aug 31). What was the SLA/commercial response to the other US-East customers degraded during that window (P95 761 → 859 ms)?</li>
+</ol>
+
+<footer class="verification">
+  Verification note: four parallel sql-analyst investigations (one per area) reconciled cross-area; all four incident/deployment links were independently confirmed from usage, revenue, support and incident data. Disputed figures (July churned MRR $716,622 vs the six accounts' $702,000 = 98.0%, not 96.6%; Helix 7,817 Aug vs 7,815 Aug 17–28; June credits $85,183 / $72,245) were re-verified with a fifth SQL pass.
+</footer>
+
+</div>
+</body>
+</html>

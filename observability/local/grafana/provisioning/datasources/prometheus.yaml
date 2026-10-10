@@ -1,0 +1,12 @@
+apiVersion: 1
+datasources:
+  - name: Prometheus
+    type: prometheus
+    uid: prometheus            # same uid as the cluster, so the dashboard JSON works unchanged
+    url: http://prometheus:9090
+    access: proxy
+    isDefault: true
+    editable: false
+    jsonData:
+      timeInterval: 5s         # scrape interval of the recorded data -> $__rate_interval = 20s
+      httpMethod: POST

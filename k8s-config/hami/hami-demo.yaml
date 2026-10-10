@@ -1,0 +1,247 @@
+# Setup B (FLEET=two-9b, the default): two identical vLLM replicas of Qwen3.5-9B (vllm-9b-a, vllm-9b-b;
+# the gateway calls them qwen-9b-a and qwen-9b-b) as two HAMi slices of one
+# H100 80GB. Applied by setup/demo_apply.sh, which fills __VLLM_IMAGE__ and starts replica A first, then
+# B, so neither profiles memory while the other is still growing.
+#
+# Memory: HAMi `gpumem` is each pod's hard wall; vLLM's --gpu-memory-utilization is a fraction OF THE
+# SLICE (HAMi reports the slice as the GPU's total). 2 × 38,912 MiB of the card's 81,559; ~3.6 GiB stays
+# unallocated. KV: what vLLM fits in the slice (~1.0M tokens each), or a fixed size for both replicas
+# (KV_GIB=<n> bash setup/demo_apply.sh → --kv-cache-memory-bytes). Compute: no `gpucores` cap, so the two replicas time-share one GPU: adding a replica adds
+# placement and isolation, not FLOPs (Exp-4 measures what it buys).
+#
+# Setup A (27B + 9B, Exp-0 to Exp-2) is k8s-config/hami/hami-27b-9b.yaml.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-9b-a
+  labels:
+    app: vllm-9b-a
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: vllm-9b-a
+  template:
+    metadata:
+      labels:
+        app: vllm-9b-a
+        model: qwen-9b
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      schedulerName: hami-scheduler
+      containers:
+        - name: vllm
+          image: __VLLM_IMAGE__
+          args:
+            - --model
+            - Qwen/Qwen3.5-9B
+            - --served-model-name
+            - qwen-9b
+            - --host
+            - 0.0.0.0
+            - --port
+            - "8000"
+            - --gpu-memory-utilization
+            - "0.95"
+            - --max-model-len
+            - "65536"
+            - --max-num-seqs
+            - "8"
+            - --max-num-batched-tokens  # chunked-prefill size
+            - "8192"
+            - --kv-cache-dtype
+            - fp8
+            - --language-model-only
+            - --reasoning-parser
+            - qwen3
+            - --enable-auto-tool-choice
+            - --tool-call-parser
+            - qwen3_xml
+            - --enable-prefix-caching
+            - --scheduling-policy
+            - priority
+            - --enable-prompt-tokens-details
+            # __KV_CACHE__
+            # thinking_token_budget (set per role by the gateway) ends reasoning with this text, so the model
+            # turns to its answer instead of reasoning on inside it (Qwen's documented budget phrase)
+            - --reasoning-config
+            - '{"reasoning_end_str": "\n\nConsidering the limited time by the user, I have to give the solution based on the thinking directly now.\n</think>\n\n"}'
+          env:
+            - name: VLLM_SERVER_DEV_MODE
+              value: "1"
+            - name: HF_HOME
+              value: /root/.cache/huggingface
+            - name: HF_HUB_OFFLINE
+              value: "1"
+            - name: HUGGING_FACE_HUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: hf-token
+                  key: token
+                  optional: true
+          ports:
+            - containerPort: 8000
+              hostPort: 8001
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            periodSeconds: 10
+            failureThreshold: 180
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            periodSeconds: 5
+          resources:
+            limits:
+              nvidia.com/gpu: "1"
+              nvidia.com/gpumem: "38912"
+          volumeMounts:
+            - name: hf-cache
+              mountPath: /root/.cache/huggingface
+            - name: shm
+              mountPath: /dev/shm
+      volumes:
+        - name: hf-cache
+          hostPath:
+            path: /home/ubuntu/hf-cache
+            type: DirectoryOrCreate
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 8Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-9b-b
+  labels:
+    app: vllm-9b-b
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: vllm-9b-b
+  template:
+    metadata:
+      labels:
+        app: vllm-9b-b
+        model: qwen-9b
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      schedulerName: hami-scheduler
+      containers:
+        - name: vllm
+          image: __VLLM_IMAGE__
+          args:
+            - --model
+            - Qwen/Qwen3.5-9B
+            - --served-model-name
+            - qwen-9b
+            - --host
+            - 0.0.0.0
+            - --port
+            - "8000"
+            - --gpu-memory-utilization
+            - "0.95"
+            - --max-model-len
+            - "65536"
+            - --max-num-seqs
+            - "8"
+            - --max-num-batched-tokens  # chunked-prefill size
+            - "8192"
+            - --kv-cache-dtype
+            - fp8
+            - --language-model-only
+            - --reasoning-parser
+            - qwen3
+            - --enable-auto-tool-choice
+            - --tool-call-parser
+            - qwen3_xml
+            - --enable-prefix-caching
+            - --scheduling-policy
+            - priority
+            - --enable-prompt-tokens-details
+            # __KV_CACHE__
+            # thinking_token_budget (set per role by the gateway) ends reasoning with this text, so the model
+            # turns to its answer instead of reasoning on inside it (Qwen's documented budget phrase)
+            - --reasoning-config
+            - '{"reasoning_end_str": "\n\nConsidering the limited time by the user, I have to give the solution based on the thinking directly now.\n</think>\n\n"}'
+          env:
+            - name: VLLM_SERVER_DEV_MODE
+              value: "1"
+            - name: HF_HOME
+              value: /root/.cache/huggingface
+            - name: HF_HUB_OFFLINE
+              value: "1"
+            - name: HUGGING_FACE_HUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: hf-token
+                  key: token
+                  optional: true
+          ports:
+            - containerPort: 8000
+              hostPort: 8002
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            periodSeconds: 10
+            failureThreshold: 180
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            periodSeconds: 5
+          resources:
+            limits:
+              nvidia.com/gpu: "1"
+              nvidia.com/gpumem: "38912"
+          volumeMounts:
+            - name: hf-cache
+              mountPath: /root/.cache/huggingface
+            - name: shm
+              mountPath: /dev/shm
+      volumes:
+        - name: hf-cache
+          hostPath:
+            path: /home/ubuntu/hf-cache
+            type: DirectoryOrCreate
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 8Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vllm-9b-a
+spec:
+  selector:
+    app: vllm-9b-a
+  ports:
+    - port: 8001
+      targetPort: 8000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vllm-9b-b
+spec:
+  selector:
+    app: vllm-9b-b
+  ports:
+    - port: 8002
+      targetPort: 8000

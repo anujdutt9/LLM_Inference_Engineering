@@ -1,0 +1,26 @@
+# Python
+.venv/
+.venv-hf/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# secrets and editor files
+.env
+.env.local
+.DS_Store
+.idea/
+.vscode/
+
+# datasets: the database ships compressed (make data unpacks it); the 10-K PDFs stay out
+datasets/**/*.db
+datasets/exp1b/filings/raw/
+
+# run outputs (the experiment scripts write them here; the recorded runs are in the shared Drive folder)
+results/
+workspace/reports/
+observability/local/.work/
+
+# videos and screen recordings (shared Drive folder: download video/ into docs/presentation/video/)
+docs/presentation/video/
+*.mov

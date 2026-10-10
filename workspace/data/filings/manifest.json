@@ -1,0 +1,70 @@
+[
+  {
+    "ticker": "nvda",
+    "name": "NVIDIA Corporation",
+    "fiscal_year": "fiscal 2026",
+    "period_end": "January 25, 2026",
+    "source": "https://d18rn0p25nwr6d.cloudfront.net/CIK-0001045810/e361e58a-7483-44f5-bc62-a9080ae6ec72.pdf (linked from investor.nvidia.com)",
+    "tokens": 9635,
+    "section_tokens": {
+      "item1": 533,
+      "item1a": 2441,
+      "item7": 3927,
+      "item8-income": 587,
+      "item8-balance": 751,
+      "item8-cashflow": 831
+    },
+    "anchors": 26
+  },
+  {
+    "ticker": "amd",
+    "name": "Advanced Micro Devices, Inc.",
+    "fiscal_year": "fiscal 2025",
+    "period_end": "December 27, 2025",
+    "source": "https://ir.amd.com/financial-information/sec-filings/content/0000002488-26-000018/0000002488-26-000018.pdf",
+    "tokens": 9774,
+    "section_tokens": {
+      "item1": 853,
+      "item1a": 2340,
+      "item7": 3726,
+      "item8-income": 775,
+      "item8-balance": 714,
+      "item8-cashflow": 817
+    },
+    "anchors": 25
+  },
+  {
+    "ticker": "intc",
+    "name": "Intel Corporation",
+    "fiscal_year": "fiscal 2025",
+    "period_end": "December 27, 2025",
+    "source": "https://www.intc.com/filings-reports/annual-reports/content/0000050863-26-000011/0000050863-26-000011.pdf",
+    "tokens": 9913,
+    "section_tokens": {
+      "item1": 1001,
+      "item1a": 2295,
+      "item7": 3894,
+      "item8-income": 623,
+      "item8-balance": 732,
+      "item8-cashflow": 832
+    },
+    "anchors": 22
+  },
+  {
+    "ticker": "avgo",
+    "name": "Broadcom Inc.",
+    "fiscal_year": "fiscal 2025",
+    "period_end": "November 2, 2025",
+    "source": "https://investors.broadcom.com/static-files/564b6a94-571d-4a43-9c3b-57cbd9477092",
+    "tokens": 8985,
+    "section_tokens": {
+      "item1": 884,
+      "item1a": 1578,
+      "item7": 3784,
+      "item8-income": 796,
+      "item8-balance": 670,
+      "item8-cashflow": 825
+    },
+    "anchors": 12
+  }
+]

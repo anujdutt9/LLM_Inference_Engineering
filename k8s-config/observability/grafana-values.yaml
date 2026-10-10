@@ -1,0 +1,28 @@
+persistence:
+  enabled: false
+service:
+  type: NodePort
+  nodePort: 31495            # fixed, so setup/ssh.sh can always tunnel it
+grafana.ini:
+  auth.anonymous:
+    enabled: true            # dashboards viewable without the generated password
+    org_role: Viewer
+sidecar:
+  dashboards:
+    enabled: true
+    label: grafana_dashboard
+    labelValue: "1"
+    searchNamespace: ALL
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        uid: prometheus
+        url: http://prometheus-server.monitoring.svc.cluster.local:80
+        access: proxy
+        jsonData:
+          timeInterval: 5s     # matches the 5 s scrape, so $__rate_interval is right
+        isDefault: true
+        editable: true

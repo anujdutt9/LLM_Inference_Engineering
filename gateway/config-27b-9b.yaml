@@ -1,0 +1,158 @@
+# orch-serve config for Setup A (FLEET=27b-9b): Qwen3.8-27B-FP8 and Qwen3.5-9B, one engine each
+# (k8s-config/hami/hami-27b-9b.yaml). These are the settings Exp-1 and Exp-2 ran with, and the config the
+# gateway's tests run against (two models: spill, overflow, per-model SLA classes).
+# Experiments change them live: the mode (POST /admin/mode), or any setting as a named
+# variant (POST /admin/config).
+
+mode: full                      # baseline | route | queue | full  (see gateway/config.py MODES)
+results_dir: /app/results       # host path /home/ubuntu/llm-inference/results (hostPath mount)
+record_bodies: true             # gzip every request body + assembled output per run
+
+# One pool per model. `model` is the served name vLLM answers to (--served-model-name).
+pools:
+  qwen-27b:
+    model: qwen-27b
+    replicas: [http://vllm-27b:8000]
+    slots_per_replica: 8        # = vLLM --max-num-seqs; the gateway queue holds the rest
+    max_model_len: 65536
+    prefill_tps: 10000          # starting estimates for admission's checks; learned live (EWMA). Measured in
+    itl_s: 0.013                # Exp-1 (learned 10,489 tok/s, 13.0 ms; was 6,000 / 35 ms, which after a restart
+    reasoning_tokens: 400       # refused 27B analysts on deadline before the rates were learned again)
+  qwen-9b:
+    model: qwen-9b
+    replicas: [http://vllm-9b:8001]
+    slots_per_replica: 8
+    max_model_len: 65536
+    prefill_tps: 17000          # Exp-1: learned 17,612 tok/s, 8.6 ms
+    itl_s: 0.009
+    reasoning_tokens: 300
+
+# SLA classes, sized for OUR workload (agent calls, not short chat): the 27B thinks before it
+# answers (hundreds to thousands of reasoning tokens at ~35 ms each), so its time to first
+# ANSWER token is tens of seconds even when its first token comes in under a second; the 9B
+# readers don't think but each first call prefills a ~10K-token filing.
+#   ttft_s      first token of any kind (reasoning or answer)
+#   ttfat_s     first token of the answer, after the reasoning
+#   deadline_s  the whole call
+#   queue_budget_s  longest wait in the gateway queue before 503 expired_in_queue
+#   priority    vLLM's --scheduling-policy priority (lower runs first)
+# Starting values from the plan's estimates; refine them from Exp-1's solo runs:
+# analysis/sessions.py prints p95 per role and model, and suggests targets.
+sla_classes:
+  interactive:  {ttft_s: 2,  ttfat_s: 3,   deadline_s: 30,  queue_budget_s: 5,   priority: 0}  # Locust LIGHT, 9B, no thinking
+  # Agent classes from Exp-1's solo runs (Exp-1A attempt 4, Exp-1B): ≈ 1.5 × p95 per role and model, with TTFT
+  # at least the prefill time of the largest prompt (admission estimates prompt ÷ prefill rate, without the prefix
+  # cache: a 33K-token prompt is ~3.2 s on the 27B though it starts in ~1 s). Replayed through admission's
+  # formula, no call of the solo runs is refused. Solo p95 (TTFT / first answer / whole call): lead 27B 1.2 / 51 / 74 s,
+  # SQL analysts 0.8 / 13 / 31 s, 10-K readers 1.0 / 1.0 / 23 s, summaries 27B 1.0 / – / 94 s.
+  agent-lead:   {ttft_s: 4,  ttfat_s: 80,  deadline_s: 120, queue_budget_s: 120, priority: 1}  # a team's lead, 27B thinking
+  agent-sub:    {ttft_s: 4,  ttfat_s: 25,  deadline_s: 60,  queue_budget_s: 150, priority: 2}  # 27B SQL analysts, thinking
+  agent-reader: {ttft_s: 3,  ttfat_s: 3,   deadline_s: 35,  queue_budget_s: 120, priority: 2}  # 9B 10-K readers, no thinking
+  agent-compaction: {ttft_s: 4, ttfat_s: 4, deadline_s: 150, queue_budget_s: 240, priority: 3}  # an agent's summary, thinking off
+  batch:        {ttft_s: 30, ttfat_s: 60,  deadline_s: 600, queue_budget_s: 240, priority: 3}  # Locust MEDIUM/HEAVY, 27B
+default_sla: interactive
+# A call with no X-SLA-Class gets the class of its role (tinyharness sends X-Agent-Role),
+# on its model where that matters ("role@pool").
+sla_by_role: {lead: agent-lead, "subagent@qwen-27b": agent-sub, "subagent@qwen-9b": agent-reader, subagent: agent-sub,
+              compaction: agent-compaction,  # a summary an agent harness writes (was batch, Locust's)
+              classifier: interactive}  # a permission check that blocks the agent (tinyharness auto mode)
+
+# max_tokens the gateway sets when a client sends none (tinyharness never does), by
+# X-Agent-Role. It is also the KV reservation admission counts, capped at reserve_cap.
+# Every agent gets the same ceiling (OpenCode's is 32,000); the roles differ in how it is split between
+# thinking and the answer (reasoning_by_role). Near a full context the context fit lowers it to the room left.
+max_tokens_by_role: {lead: 32768, subagent: 32768, compaction: 8192, classifier: 1024, default: 4096}  # compaction: the summary, thinking off
+
+# How each role reasons, when the client sets none (the client's own values win). Like Anthropic's
+# thinking budget_tokens / OpenAI's reasoning effort: `effort` is Qwen3.8's template reasoning_effort
+# (xhigh | medium | low; the 9B ignores it); `answer_reserve` sends vLLM a thinking_token_budget of
+# max_tokens − answer_reserve (after the context fit; at least 2,048), so a long think always leaves room to answer;
+# `thinking_max` caps that budget (a runaway think costs ~35 ms a token on the 27B, and a running call is never
+# stopped at its deadline); `thinking: false` turns thinking off. Exp-1A: analysts at xhigh / 8,192 spent whole
+# replies thinking.
+reasoning_by_role:
+  lead:       {effort: medium, answer_reserve: 16384, thinking_max: 16384}  # md + html report in one reply
+  subagent:   {effort: medium, answer_reserve: 4096, thinking_max: 12288}
+  compaction: {thinking: false}
+  classifier: {thinking: false}  # tinyharness auto mode's permission check: a one-line JSON verdict, 5 s timeout
+  default:    {effort: medium}
+
+# Per-tenant token bucket (prompt + reserved output tokens).
+tenants:
+  default:  {tokens_per_min: 3000000, burst: 600000}
+  tenant-a: {tokens_per_min: 3000000, burst: 600000}
+  tenant-b: {tokens_per_min: 3000000, burst: 600000}
+
+admission:
+  reserve_cap: 4096             # count at most this much of max_tokens (cap the reservation)
+  stale_s: 5                    # engine signal older than this → 503 no_signal (fail closed)
+  kv_shed: 0.90                 # target pool KV above this → 503 kv_pressure
+  new_session_kv: 0.80          # above this, refuse NEW sessions (503 new_session_shed) ...
+  new_session_queue: 16         # ... or when the lane is this deep
+  session_overdraft: 0.5        # an admitted session may run the bucket this far negative (× burst)
+  session_idle_s: 900
+  # Which checks run (mode `full`), in this order; the sweep turns them off one at a time.
+  #   stale        engine metrics older than stale_s     → 503 no_signal
+  #   kv           pool KV above kv_shed                 → 503 kv_pressure
+  #   queue_bound  lane at max_depth_per_lane            → 503 queue_depth
+  #   new_session  new session while busy                → 503 new_session_shed
+  #   bucket       tenant over its token budget          → 429 tenant_tokens
+  #   ttft         estimated TTFT  > the class's ttft_s  → 429 ttft_unmeetable
+  #   ttfat        estimated TTFAT > the class's ttfat_s → 429 ttfat_unmeetable
+  #   deadline     estimated total > the class's deadline_s → 429 deadline_unmeetable
+  checks: [stale, kv, queue_bound, new_session, bucket, ttft, ttfat, deadline]
+  estimate_slack: 1.5           # refuse only when the estimate is this many times the target
+
+queue:
+  # fifo | priority (SLA class, then arrival) | sjf (smallest call first) | edf (earliest
+  # deadline, with aging) | edf_fair (edf within a tenant, deficit round-robin across tenants)
+  policy: edf_fair
+  max_depth_per_lane: 64
+  aging_gain: 0.5               # effective deadline improves by this × time waited
+  drr_quantum_tokens: 8192      # deficit round-robin between tenants, in tokens
+
+routing:
+  # Which replica inside a pool (matters with 2+ replicas: the routing sweep's 2×9B fleet):
+  # round_robin | random | least_loaded | p2c (power of two choices) | prefix_p2c (sticky to
+  # the replica holding the prompt's prefix, else p2c)
+  policy: prefix_p2c
+  spill:
+    enabled: true
+    from: qwen-9b
+    to: qwen-27b
+    roles: [subagent]           # lead calls never move; 27B calls never move down
+    max_target_kv: 0.70
+  prefix_block_chars: 4096      # prefix-aware placement hashes the prompt in blocks of this size
+  w_prefix: 2.0
+  w_load: 1.0
+
+# Edge checks (app/guardrails.py) before admission. A chat-sized edge (512 output tokens, 8,000
+# prompt characters) is far too small: one agent call here can carry a 30K-token filing.
+guardrails:
+  max_new_tokens: 32768
+  max_prompt_chars: 1500000
+  # A call whose prompt + max_tokens exceeds the model's context gets max_tokens lowered to fit (vLLM
+  # would refuse it with a 400); below min_output_tokens of room it is refused here as context_full.
+  context_margin_tokens: 32
+  min_output_tokens: 1024
+
+scrape_interval_s: 1.0
+upstream:
+  connect_s: 10
+  read_idle_s: 240              # gap between streamed bytes before giving up
+
+# Overflow (gateway/overflow.py): a call refused for lack of capacity (503: KV pressure,
+# queue full / expired, stale engine metrics, new session refused, engine unreachable)
+# goes to the same model at Superlinked instead. 429 (the tenant's budget), 400 and 500
+# stay local. The key is $OVERFLOW_API_KEY (setup/overflow_secret.sh puts it in a
+# Kubernetes secret); with no key, or dry_run: true, the gate only counts what would leave.
+overflow:
+  enabled: true
+  dry_run: false
+  base_url: https://api.superlinked.com/v1
+  targets:
+    qwen-27b: Qwen/Qwen3.8-27B-FP8   # the same model as the local 27B
+    # qwen-9b: <a Superlinked model>  # add one to let the 9B pool overflow too
+  max_calls: 200                     # per gateway start: a cost cap
+  max_inflight: 8
+  timeout_s: 240

@@ -1,0 +1,17 @@
+{
+	"ulid": "01M4KN279V278SF839MZ1DVVW8",
+	"minTime": 1791079680160,
+	"maxTime": 1791080290218,
+	"stats": {
+		"numSamples": 521482,
+		"numSeries": 4313,
+		"numChunks": 4313
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01M4KN279V278SF839MZ1DVVW8"
+		]
+	},
+	"version": 1
+}

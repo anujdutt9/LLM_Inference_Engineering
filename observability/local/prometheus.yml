@@ -1,0 +1,7 @@
+# Replay only: no scrape targets. Prometheus just serves the TSDB snapshot mounted at
+# /prometheus. scrape_interval matches the cluster (5 s) so Grafana's $__rate_interval
+# and step defaults line up with the recorded data.
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+scrape_configs: []

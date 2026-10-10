@@ -1,0 +1,3 @@
+{"exp": "exp4", "part": "demo", "group": "modes", "variant": "full", "variant_id": "demo/full", "start": 1791080014, "end": 1791080256,
+ "ramp_steps": "24", "ramp_hold_s": 240, "load_docs": 40,
+ "grafana": "http://127.0.0.1:31495/d/demo-exp4?from=1791080014000&to=1791080256000"}
