@@ -67,7 +67,7 @@ do to latency, goodput, reliability and the quality of what the agents produce?
 
 ## 3. What I built
 
-### 3.1 The gateway (orch-serve)
+### 3.1 The gateway
 
 An async, OpenAI-compatible streaming proxy (Starlette). Every call goes: edge guardrails → classify (model →
 pool, tenant + agent role → SLA class) → **admission** (engine signal, KV pressure, queue bound, tenant token
